@@ -2,609 +2,453 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tablero de Investigación FBI - Caso Abierto</title>
-    <!-- Tailwind CSS for modern UI controls and styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for investigative icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts for authentic detective feel -->
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>DELTA GREEN // THE PROGRAM - OPERATION BOARD</title>
+    <!-- SheetJS para importación opcional -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #121214;
-            color: #e4e4e7;
-            overflow: hidden;
-            user-select: none;
+        :root {
+            --dg-bg: #0b120e;
+            --dg-panel: #111a14;
+            --dg-border: #1e3324;
+            --dg-green: #33ff66;
+            --dg-dim-green: #1a8c3e;
+            --dg-alert: #ff3333;
+            --polaroid-bg: #e6e2d3;
+            --shadow: 0 10px 25px rgba(0,0,0,0.8);
         }
-        .detective-font {
-            font-family: 'Special Elite', cursive, monospace;
-        }
-        /* Corkboard background texture */
-        .cork-board {
-            background-color: #b57c4c;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.4) 100%),
-                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E");
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.7);
-        }
-        /* Whiteboard background alternative */
-        .white-board {
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-        /* Suspect polaroid card styling */
-        .suspect-card {
-            position: absolute;
-            width: 240px;
-            background: #fffdf9;
-            color: #1f2937;
-            padding: 12px 12px 16px 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-            transform: rotate(-1deg);
-            transition: box-shadow 0.2s ease, transform 0.1s ease;
-            cursor: grab;
-            border-radius: 2px;
-            z-index: 10;
-        }
-        .suspect-card:active {
-            cursor: grabbing;
-        }
-        .suspect-card.dragging {
-            z-index: 100;
-            box-shadow: 0 20px 30px rgba(0,0,0,0.6);
-            transform: scale(1.03) rotate(1deg);
-        }
-        /* Pin styles */
-        .pin {
-            position: absolute;
-            top: -12px;
-            left: calc(50% - 12px);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.4), inset 0 2px 3px rgba(255,255,255,0.6);
-            z-index: 20;
-            pointer-events: none;
-        }
-        .pin-red { background: radial-gradient(circle at 30% 30%, #ff5252, #b71c1c); }
-        .pin-blue { background: radial-gradient(circle at 30% 30%, #448aff, #0d47a1); }
-        .pin-yellow { background: radial-gradient(circle at 30% 30%, #ffd740, #ff8f00); }
         
-        /* Red string canvas overlay */
-        #stringCanvas {
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--dg-bg);
+        }
+
+        /* Cabecera Clasificada Delta Green */
+        #top-classification {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5;
+            background: #000;
+            color: var(--dg-alert);
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            padding: 4px 0;
+            z-index: 1001;
+            border-bottom: 1px solid #400;
+            box-shadow: 0 2px 10px rgba(255,0,0,0.2);
         }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+
+        #toolbar {
+            position: absolute;
+            top: 28px;
+            left: 15px;
+            z-index: 1000;
+            background: rgba(11, 18, 14, 0.95);
+            padding: 10px 15px;
+            border-radius: 3px;
+            border: 1px solid var(--dg-dim-green);
+            color: var(--dg-green);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.9);
+            flex-wrap: wrap;
+        }
+
+        #toolbar button, #toolbar label, #toolbar input[type="text"] {
+            background: #142218;
+            color: var(--dg-green);
+            border: 1px solid var(--dg-dim-green);
+            padding: 6px 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            box-shadow: inset 0 0 5px rgba(51,255,102,0.1);
+        }
+
+        #toolbar input[type="text"] {
+            background: #050a07;
+            cursor: text;
+            width: 160px;
+            color: #ffcc00;
+            letter-spacing: 1px;
+            border-color: #554400;
+        }
+
+        #toolbar button:hover, #toolbar label:hover {
+            background: var(--dg-dim-green);
+            color: #fff;
+        }
+
+        #toolbar input[type="file"] {
+            display: none;
+        }
+
+        #board {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: #1a261e;
+            background-image: radial-gradient(rgba(51,255,102,0.05) 15%, transparent 16%),
+                              radial-gradient(rgba(0,0,0,0.4) 15%, transparent 16%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            overflow: auto;
+            cursor: grab;
+        }
+
+        #board:active {
+            cursor: grabbing;
+        }
+
+        #string-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6000px;
+            height: 6000px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .board-container {
+            position: absolute;
+            width: 6000px;
+            height: 6000px;
+        }
+
+        /* Ficha de Expediente de Individuo (Estilo Delta Green / Dossier) */
+        .individual-card {
+            position: absolute;
+            width: 230px;
+            background: var(--polaroid-bg);
+            padding: 10px 10px 15px 10px;
+            box-shadow: var(--shadow);
+            border-radius: 2px;
+            transform: rotate(-0.5deg);
+            transition: box-shadow 0.2s ease;
+            z-index: 20;
+            user-select: none;
+            border: 1px solid #b5aca0;
+        }
+
+        .individual-card:hover {
+            z-index: 100;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+        }
+
+        .pin {
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 2px 2px 3px rgba(255,255,255,0.7);
+            z-index: 30;
+            cursor: pointer;
+        }
+        .pin.red { background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000); }
+        .pin.blue { background: radial-gradient(circle at 30% 30%, #4d94ff, #002266); }
+        .pin.yellow { background: radial-gradient(circle at 30% 30%, #ffea4d, #998800); }
+
+        .individual-img-container {
+            width: 100%;
+            height: 140px;
+            background: #111;
+            overflow: hidden;
+            border: 1px solid #555;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .individual-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(0.4) contrast(1.2) sepia(0.2);
+        }
+
+        .editable-field {
+            border: 1px dashed transparent;
+            background: transparent;
+            font-family: inherit;
+            width: 100%;
+            box-sizing: border-box;
+            color: inherit;
+        }
+
+        .editable-field:hover, .editable-field:focus {
+            border-color: #800;
+            background: rgba(255,255,255,0.85);
+            outline: none;
+        }
+
+        .individual-info h3 input {
+            font-size: 13px;
+            font-weight: bold;
+            color: #111;
+            border-bottom: 1px dashed #999;
+            margin-bottom: 4px;
+        }
+
+        .individual-role input {
+            font-size: 10px;
+            color: #900;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .individual-desc textarea {
+            font-size: 10px;
+            color: #222;
+            line-height: 1.25;
+            resize: vertical;
+            height: 45px;
+            background: transparent;
+        }
+
+        .mode-indicator {
+            font-size: 11px;
+            color: #ffcc00;
+            font-weight: bold;
+        }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden">
+<body>
 
-    <!-- Top Control Bar -->
-    <header class="bg-zinc-900 border-b border-zinc-800 px-6 py-3 flex flex-wrap items-center justify-between z-30 shadow-md">
-        <div class="flex items-center space-x-3">
-            <div class="bg-red-700 text-white px-3 py-1 rounded font-bold tracking-widest text-sm uppercase flex items-center shadow">
-                <i class="fa-solid fa-user-secret mr-2"></i> CASO ABIENTO #409
-            </div>
-            <h1 class="text-xl font-bold detective-font tracking-wide text-zinc-100 hidden sm:block">TABLÓN DE SOSPECHOSOS</h1>
+    <div id="top-classification">EYES ONLY // THE PROGRAM // AUTHORIZED DELTA GREEN AGENTS ONLY // CLASSIFIED TOP SECRET</div>
+
+    <div id="toolbar">
+        <div>
+            <label>OPERACIÓN:</label>
+            <input type="text" id="op-name" value="OPERATION-STYX">
         </div>
+        <button onclick="saveOperation()">💾 Guardar Op.</button>
+        <button onclick="loadOperation()">📂 Cargar Op.</button>
+        <button onclick="toggleMode()">Modo: <span id="mode-name">Mover</span></button>
+        <button onclick="addNewCard()">➕ Añadir Individuo</button>
+        <button onclick="clearConnections()">Limpiar Hilos</button>
+        <span class="mode-indicator" id="instruction-text">Tablero listo.</span>
+    </div>
 
-        <div class="flex items-center space-x-3 my-1 sm:my-0">
-            <!-- Board Theme Switcher -->
-            <div class="bg-zinc-800 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                <button onclick="setBoardTheme('cork')" id="btnCork" class="px-3 py-1.5 rounded bg-amber-900 text-amber-100 transition shadow">Corcho</button>
-                <button onclick="setBoardTheme('white')" id="btnWhite" class="px-3 py-1.5 rounded text-zinc-400 hover:text-white transition">Pizarra Blanca</button>
-            </div>
-
-            <!-- Mode Selector -->
-            <div class="bg-zinc-800 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                <button onclick="setMode('move')" id="btnMove" class="px-3 py-1.5 rounded bg-red-600 text-white transition flex items-center shadow"><i class="fa-solid fa-hand mr-1.5"></i> Mover</button>
-                <button onclick="setMode('connect')" id="btnConnect" class="px-3 py-1.5 rounded text-zinc-400 hover:text-white transition flex items-center"><i class="fa-solid fa-thread mr-1.5"></i> Conectar Hilo</button>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-2">
-            <button onclick="openAddModal()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition flex items-center">
-                <i class="fa-solid fa-user-plus mr-2"></i> Nuevo Sospechoso
-            </button>
-            <button onclick="clearConnections()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-sm font-medium transition" title="Borrar todas las conexiones">
-                <i class="fa-solid fa-rotate-left"></i>
-            </button>
-            <button onclick="resetBoard()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-sm font-medium transition" title="Restaurar caso predeterminado">
-                <i class="fa-solid fa-arrow-rotate-right"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Interactive Workspace Board -->
-    <main id="boardContainer" class="relative flex-1 cork-board overflow-hidden cursor-grab active:cursor-grabbing">
-        <!-- SVG Canvas for Red Strings -->
-        <canvas id="stringCanvas"></canvas>
-        
-        <!-- Connection helper banner -->
-        <div id="connectBanner" class="absolute top-4 left-1/2 -translate-x-1/2 bg-red-900/90 text-red-100 border border-red-500 px-4 py-2 rounded-full text-sm font-medium z-40 hidden shadow-lg backdrop-blur-sm pointer-events-none animate-pulse">
-            <i class="fa-solid fa-triangle-exclamation mr-2"></i> MODO CONEXIÓN: Haz clic en el primer sospechoso y luego en el segundo para unirlos con hilo rojo.
-        </div>
-
-        <!-- Cards container -->
-        <div id="cardsLayer" class="absolute inset-0 pointer-events-none"></div>
-    </main>
-
-    <!-- Modal: Add / Edit Suspect -->
-    <div id="suspectModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div class="bg-zinc-800 px-6 py-4 border-b border-zinc-700 flex justify-between items-center">
-                <h3 id="modalTitle" class="text-lg font-bold text-white detective-font">AÑADIR NUEVO SOSPECHOSO</h3>
-                <button onclick="closeModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <form id="suspectForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="editCardId">
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">Nombre del Sospechoso</label>
-                    <input type="text" id="suspectName" required placeholder="Ej. Dr. Samuel Vance" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">Rol / Estatus</label>
-                        <select id="suspectRole" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500">
-                            <option value="SOSPECHOSO PRINCIPAL">Sospechoso Principal</option>
-                            <option value="CÓMPLICE">Cómplice</option>
-                            <option value="TESTIGO CLAVE">Testigo Clave</option>
-                            <option value="VÍCTIMA">Víctima</option>
-                            <option value="CONTACTO OCULTO">Contacto Oculto</option>
-                            <option value="BAJO VIGILANCIA">Bajo Vigilancia</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">Color de Chincheta</label>
-                        <select id="suspectPin" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500">
-                            <option value="pin-red">Rojo (Peligro/Principal)</option>
-                            <option value="pin-blue">Azul (Aliado/Investigado)</option>
-                            <option value="pin-yellow">Amarillo (Neutral/Pista)</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase mb-1">URL de la Foto o Avatar</label>
-                    <input type="url" id="suspectImage" placeholder="https://images.unsplash.com/..." class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500">
-                    <p class="text-[11px] text-zinc-500 mt-1">Si se deja en blanco, se asignará un avatar policial predeterminado.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase /zinc-400 text-xs font-semibold text-zinc-400 uppercase mb-1">Notas de Inteligencia</label>
-                    <textarea id="suspectNotes" rows="3" placeholder="Detalles clave, coartadas, conexiones o pruebas..." class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-red-500 text-sm"></textarea>
-                </div>
-                <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium shadow">Guardar Expediente</button>
-                </div>
-            </form>
+    <div id="board">
+        <div class="board-container" id="board-container">
+            <canvas id="string-canvas" width="6000" height="6000"></canvas>
         </div>
     </div>
 
     <script>
-        let boardTheme = 'cork';
-        let currentMode = 'move'; // 'move' or 'connect'
-        let connectSourceId = null;
+        let individuals = [];
+        let connections = []; 
+        let mode = 'move'; 
+        let connectingSource = null;
 
-        let suspects = [
-            {
-                id: 'sus_1',
-                name: 'Arthur Pendelton',
-                role: 'SOSPECHOSO PRINCIPAL',
-                pin: 'pin-red',
-                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
-                notes: 'Visto cerca de la escena del crimen a las 23:45. Cuenta bancaria con ingresos sospechosos en paraísos fiscales.',
-                x: window.innerWidth > 768 ? 150 : 50,
-                y: 120
-            },
-            {
-                id: 'sus_2',
-                name: 'Elena Rostova',
-                role: 'CÓMPLICE',
-                pin: 'pin-yellow',
-                image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-                notes: 'Ex-agente de inteligencia. Propietaria del vehículo negro interceptado en las cámaras de seguridad.',
-                x: window.innerWidth > 768 ? 480 : 50,
-                y: 150
-            },
-            {
-                id: 'sus_3',
-                name: 'Marcus Vance',
-                role: 'TESTIGO CLAVE',
-                pin: 'pin-blue',
-                image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
-                notes: 'Informante anónimo. Asegura haber escuchado amenazas la noche anterior al incidente.',
-                x: window.innerWidth > 768 ? 810 : 50,
-                y: 180
+        function initBoard() {
+            const currentOp = document.getElementById('op-name').value;
+            const savedData = localStorage.getItem('dg_op_' + currentOp);
+            
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                individuals = parsed.individuals || parsed.suspects || [];
+                connections = parsed.connections || [];
+            } else {
+                individuals = [
+                    { id: 1, name: "Dr. Victor March", role: "MÉDICO FORENSE", desc: "Realizó la autopsia no oficial en OMAHA. Muy nervioso.", x: 250, y: 150, pin: "red", img: "" },
+                    { id: 2, name: "Sarah Miller", role: "ESPOSA (VÍNCULO)", desc: "Empieza a sospecher de las ausencias prolongadas del agente.", x: 550, y: 200, pin: "blue", img: "" }
+                ];
+                connections = [{ from: 1, to: 2 }];
             }
-        ];
-
-        let connections = [
-            { from: 'sus_1', to: 'sus_2' },
-            { from: 'sus_2', to: 'sus_3' }
-        ];
-
-        // Canvas & board references
-        const boardContainer = document.getElementById('boardContainer');
-        const cardsLayer = document.getElementById('cardsLayer');
-        const canvas = document.getElementById('stringCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Dragging state
-        let activeCard = null;
-        let offsetX = 0;
-        let offsetY = 0;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            resizeCanvas();
             renderBoard();
-            setupPanAndZoom();
-        });
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            drawStrings();
-        });
-
-        function resizeCanvas() {
-            canvas.width = boardContainer.clientWidth;
-            canvas.height = boardContainer.clientHeight;
             drawStrings();
         }
 
         function renderBoard() {
-            cardsLayer.innerHTML = '';
-            suspects.forEach(suspect => {
-                const card = document.createElement('div');
-                card.className = `suspect-card pointer-events-auto`;
-                card.style.left = `${suspect.x}px`;
-                card.style.top = `${suspect.y}px`;
-                card.dataset.id = suspect.id;
+            const container = document.getElementById('board-container');
+            const canvas = document.getElementById('string-canvas');
+            container.innerHTML = '';
+            container.appendChild(canvas);
 
-                const imgUrl = suspect.image && suspect.image.trim() !== '' 
-                    ? suspect.image 
-                    : `https://placehold.co/300x300/333/fff?text=${encodeURIComponent(suspect.name)}`;
+            individuals.forEach(ind => {
+                const card = document.createElement('div');
+                card.className = 'individual-card';
+                card.style.left = ind.x + 'px';
+                card.style.top = ind.y + 'px';
+                card.dataset.id = ind.id;
 
                 card.innerHTML = `
-                    <div class="pin ${suspect.pin}"></div>
-                    <div class="relative bg-zinc-900 border-2 border-zinc-800 overflow-hidden mb-2 rounded-sm aspect-square">
-                        <img src="${imgUrl}" alt="${suspect.name}" class="w-full h-full object-cover filter contrast-125 grayscale-[30%]" onerror="this.src='https://placehold.co/300x300/333/fff?text=No+Foto'">
-                        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 text-center">
-                            <span class="text-[10px] tracking-widest font-bold uppercase px-2 py-0.5 rounded bg-red-900/80 text-red-100">${suspect.role}</span>
-                        </div>
+                    <div class="pin ${ind.pin || 'red'}" onclick="handlePinClick(event, ${ind.id})" title="Clic para tender hilo rojo"></div>
+                    <div class="individual-img-container" onclick="changeImage(${ind.id})" title="Clic para añadir URL de foto">
+                        ${ind.img ? `<img src="${ind.img}" alt="Dossier">` : '<span>[ FOTO - AÑADIR URL ]</span>'}
                     </div>
-                    <div class="text-center mb-1">
-                        <h4 class="font-bold text-zinc-900 text-base detective-font truncate">${suspect.name}</h4>
-                    </div>
-                    <p class="text-[11px] text-zinc-600 font-mono bg-amber-50/80 p-1.5 rounded border border-amber-200/60 line-clamp-3">${suspect.notes}</p>
-                    <div class="mt-2 pt-2 border-t border-zinc-200 flex justify-between items-center text-xs text-zinc-500">
-                        <button onclick="openEditModal('${suspect.id}')" class="hover:text-zinc-900 transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteSuspect('${suspect.id}')" class="hover:text-red-600 transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    <div class="individual-info">
+                        <h3><input type="text" class="editable-field" value="${ind.name}" onchange="updateField(${ind.id}, 'name', this.value)"></h3>
+                        <div class="individual-role"><input type="text" class="editable-field" value="${ind.role}" onchange="updateField(${ind.id}, 'role', this.value)"></div>
+                        <div class="individual-desc"><textarea class="editable-field" onchange="updateField(${ind.id}, 'desc', this.value)">${ind.desc}</textarea></div>
                     </div>
                 `;
 
-                // Card interaction events for Drag & Drop and Connect
-                card.addEventListener('mousedown', (e) => onCardMouseDown(e, suspect, card));
-                card.addEventListener('touchstart', (e) => onCardTouchStart(e, suspect, card), {passive: false});
+                let isDragging = false;
+                let startX, startY;
 
-                cardsLayer.appendChild(card);
+                card.addEventListener('mousedown', (e) => {
+                    if (mode !== 'move' || e.target.classList.contains('editable-field') || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('pin')) return;
+                    isDragging = true;
+                    startX = e.clientX - ind.x;
+                    startY = e.clientY - ind.y;
+                    card.style.zIndex = 1000;
+                    e.stopPropagation();
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    ind.x = e.clientX - startX;
+                    ind.y = e.clientY - startY;
+                    card.style.left = ind.x + 'px';
+                    card.style.top = ind.y + 'px';
+                    drawStrings();
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                container.appendChild(card);
             });
-            drawStrings();
         }
 
-        function onCardMouseDown(e, suspect, card) {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-
-            if (currentMode === 'connect') {
-                handleCardConnection(suspect.id);
-                return;
-            }
-
-            activeCard = suspect;
-            card.classList.add('dragging');
-            const rect = card.getBoundingClientRect();
-            const parentRect = boardContainer.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
-
-            function onMouseMove(moveEvent) {
-                if (!activeCard) return;
-                let newX = moveEvent.clientX - parentRect.left - offsetX;
-                let newY = moveEvent.clientY - parentRect.top - offsetY;
-
-                activeCard.x = Math.max(0, Math.min(boardContainer.clientWidth - 240, newX));
-                activeCard.y = Math.max(0, Math.min(boardContainer.clientHeight - 300, newY));
-                
-                card.style.left = `${activeCard.x}px`;
-                card.style.top = `${activeCard.y}px`;
-                drawStrings();
-            }
-
-            function onMouseUp() {
-                if (activeCard) {
-                    card.classList.remove('dragging');
-                    activeCard = null;
-                }
-                window.removeEventListener('mousemove', onMouseMove);
-                window.removeEventListener('mouseup', onMouseUp);
-            }
-
-            window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('mouseup', onMouseUp);
+        function updateField(id, field, value) {
+            const item = individuals.find(i => i.id === id);
+            if (item) item[field] = value;
         }
 
-        function onCardTouchStart(e, suspect, card) {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-            e.preventDefault();
-
-            if (currentMode === 'connect') {
-                handleCardConnection(suspect.id);
-                return;
+        function changeImage(id) {
+            const item = individuals.find(i => i.id === id);
+            const newUrl = prompt("Introduce la URL de la imagen del individuo:", item.img || "");
+            if (newUrl !== null) {
+                item.img = newUrl;
+                renderBoard();
             }
+        }
 
-            activeCard = suspect;
-            card.classList.add('dragging');
-            const touch = e.touches[0];
-            const rect = card.getBoundingClientRect();
-            const parentRect = boardContainer.getBoundingClientRect();
-            offsetX = touch.clientX - rect.left;
-            offsetY = touch.clientY - rect.top;
-
-            function onTouchMove(moveEvent) {
-                if (!activeCard) return;
-                const t = moveEvent.touches[0];
-                let newX = t.clientX - parentRect.left - offsetX;
-                let newY = t.clientY - parentRect.top - offsetY;
-
-                activeCard.x = Math.max(0, Math.min(boardContainer.clientWidth - 240, newX));
-                activeCard.y = Math.max(0, Math.min(boardContainer.clientHeight - 300, newY));
-                
-                card.style.left = `${activeCard.x}px`;
-                card.style.top = `${activeCard.y}px`;
-                drawStrings();
-            }
-
-            function onTouchEnd() {
-                if (activeCard) {
-                    card.classList.remove('dragging');
-                    activeCard = null;
-                }
-                window.removeEventListener('touchmove', onTouchMove);
-                window.removeEventListener('touchend', onTouchEnd);
-            }
-
-            window.addEventListener('touchmove', onTouchMove, {passive: false});
-            window.addEventListener('touchend', onTouchEnd);
+        function addNewCard() {
+            const newId = individuals.length > 0 ? Math.max(...individuals.map(i => i.id)) + 1 : 1;
+            individuals.push({
+                id: newId,
+                name: "NUEVO INDIVIDUO",
+                role: "CONTACTO / VÍNCULO",
+                desc: "Notas de inteligencia...",
+                x: 200 + (individuals.length % 5) * 40,
+                y: 200 + (individuals.length % 5) * 40,
+                pin: "red",
+                img: ""
+            });
+            renderBoard();
         }
 
         function drawStrings() {
+            const canvas = document.getElementById('string-canvas');
+            const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#dc2626'; // Red string color
-            ctx.lineWidth = 3;
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 4;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
+
+            ctx.strokeStyle = '#b22222'; 
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = 'rgba(0,0,0,0.9)';
+            ctx.shadowBlur = 6;
 
             connections.forEach(conn => {
-                const cardA = suspects.find(s => s.id === conn.from);
-                const cardB = suspects.find(s => s.id === conn.to);
+                const fromInd = individuals.find(i => i.id === conn.from);
+                const toInd = individuals.find(i => i.id === conn.to);
 
-                if (cardA && cardB) {
-                    // Coordinates of the top center (where the pin is located)
-                    const x1 = cardA.x + 120;
-                    const y1 = cardA.y + 12; // Pin position relative to card
-                    const x2 = cardB.x + 120;
-                    const y2 = cardB.y + 12;
+                if (fromInd && toInd) {
+                    const x1 = fromInd.x + 115; 
+                    const y1 = fromInd.y + 10;
+                    const x2 = toInd.x + 115;
+                    const y2 = toInd.y + 10;
 
                     ctx.beginPath();
                     ctx.moveTo(x1, y1);
-                    // Add slight natural sag to the string
-                    const midX = (x1 + x2) / 2;
-                    const midY = (y1 + y2) / 2 + 20;
-                    ctx.quadraticCurveTo(midX, midY, x2, y2);
+                    let cx = (x1 + x2) / 2 + (Math.random() - 0.5) * 12;
+                    let cy = (y1 + y2) / 2 + (Math.random() - 0.5) * 12;
+                    ctx.quadraticCurveTo(cx, cy, x2, y2);
                     ctx.stroke();
                 }
             });
         }
 
-        function setBoardTheme(theme) {
-            boardTheme = theme;
-            const btnCork = document.getElementById('btnCork');
-            const btnWhite = document.getElementById('btnWhite');
-
-            if (theme === 'cork') {
-                boardContainer.className = 'relative flex-1 cork-board overflow-hidden cursor-grab active:cursor-grabbing';
-                btnCork.className = 'px-3 py-1.5 rounded bg-amber-900 text-amber-100 transition shadow';
-                btnWhite.className = 'px-3 py-1.5 rounded text-zinc-400 hover:text-white transition';
-            } else {
-                boardContainer.className = 'relative flex-1 white-board overflow-hidden cursor-grab active:cursor-grabbing';
-                btnWhite.className = 'px-3 py-1.5 rounded bg-zinc-800 text-white transition shadow';
-                btnCork.className = 'px-3 py-1.5 rounded text-zinc-400 hover:text-white transition';
-            }
-        }
-
-        function setMode(mode) {
-            currentMode = mode;
-            const btnMove = document.getElementById('btnMove');
-            const btnConnect = document.getElementById('btnConnect');
-            const connectBanner = document.getElementById('connectBanner');
-
+        function toggleMode() {
             if (mode === 'move') {
-                btnMove.className = 'px-3 py-1.5 rounded bg-red-600 text-white transition flex items-center shadow';
-                btnConnect.className = 'px-3 py-1.5 rounded text-zinc-400 hover:text-white transition flex items-center';
-                connectBanner.classList.add('hidden');
-                connectSourceId = null;
+                mode = 'connect';
+                document.getElementById('mode-name').innerText = 'Conectar';
+                document.getElementById('instruction-text').innerText = 'Haz clic en dos chinchetas para tender hilo rojo.';
             } else {
-                btnConnect.className = 'px-3 py-1.5 rounded bg-red-600 text-white transition flex items-center shadow';
-                btnMove.className = 'px-3 py-1.5 rounded text-zinc-400 hover:text-white transition flex items-center';
-                connectBanner.classList.remove('hidden');
+                mode = 'move';
+                document.getElementById('mode-name').innerText = 'Mover';
+                document.getElementById('instruction-text').innerText = 'Tablero listo.';
+                connectingSource = null;
             }
         }
 
-        function handleCardConnection(suspectId) {
-            if (!connectSourceId) {
-                connectSourceId = suspectId;
-                // Highlight source card visually if desired
-                const cardEl = document.querySelector(`[data-id='${suspectId}']`);
-                if(cardEl) cardEl.style.boxShadow = '0 0 20px #ef4444';
-            } else {
-                if (connectSourceId !== suspectId) {
-                    // Check if connection already exists
-                    const exists = connections.some(c => (c.from === connectSourceId && c.to === suspectId) || (c.from === suspectId && c.to === connectSourceId));
-                    if (!exists) {
-                        connections.push({ from: connectSourceId, to: suspectId });
+        function handlePinClick(e, id) {
+            if (mode === 'connect') {
+                e.stopPropagation();
+                if (connectingSource === null) {
+                    connectingSource = id;
+                } else {
+                    if (connectingSource !== id) {
+                        connections.push({ from: connectingSource, to: id });
+                        drawStrings();
                     }
+                    connectingSource = null;
                 }
-                // Reset source highlight
-                const prevEl = document.querySelector(`[data-id='${connectSourceId}']`);
-                if(prevEl) prevEl.style.boxShadow = '';
-                connectSourceId = null;
-                setMode('move');
-                renderBoard();
             }
         }
 
         function clearConnections() {
-            connections = [];
-            drawStrings();
-        }
-
-        function resetBoard() {
-            suspects = [
-                {
-                    id: 'sus_1',
-                    name: 'Arthur Pendelton',
-                    role: 'SOSPECHOSO PRINCIPAL',
-                    pin: 'pin-red',
-                    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
-                    notes: 'Visto cerca de la escena del crimen a las 23:45. Cuenta bancaria con ingresos sospechosos.',
-                    x: 150,
-                    y: 120
-                },
-                {
-                    id: 'sus_2',
-                    name: 'Elena Rostova',
-                    role: 'CÓMPLICE',
-                    pin: 'pin-yellow',
-                    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-                    notes: 'Ex-agente de inteligencia. Propietaria del vehículo negro.',
-                    x: 480,
-                    y: 150
-                }
-            ];
-            connections = [{ from: 'sus_1', to: 'sus_2' }];
-            renderBoard();
-        }
-
-        function openAddModal() {
-            document.getElementById('modalTitle').innerText = 'AÑADIR NUEVO SOSPECHOSO';
-            document.getElementById('editCardId').value = '';
-            document.getElementById('suspectName').value = '';
-            document.getElementById('suspectRole').value = 'SOSPECHOSO PRINCIPAL';
-            document.getElementById('suspectPin').value = 'pin-red';
-            document.getElementById('suspectImage').value = '';
-            document.getElementById('suspectNotes').value = '';
-            document.getElementById('suspectModal').classList.remove('hidden');
-        }
-
-        function openEditModal(id) {
-            const suspect = suspects.find(s => s.id === id);
-            if (!suspect) return;
-
-            document.getElementById('modalTitle').innerText = 'EDITAR EXPEDIENTE';
-            document.getElementById('editCardId').value = suspect.id;
-            document.getElementById('suspectName').value = suspect.name;
-            document.getElementById('suspectRole').value = suspect.role;
-            document.getElementById('suspectPin').value = suspect.pin;
-            document.getElementById('suspectImage').value = suspect.image;
-            document.getElementById('suspectNotes').value = suspect.notes;
-            document.getElementById('suspectModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('suspectModal').classList.add('hidden');
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const editId = document.getElementById('editCardId').value;
-            const name = document.getElementById('suspectName').value;
-            const role = document.getElementById('suspectRole').value;
-            const pin = document.getElementById('suspectPin').value;
-            const image = document.getElementById('suspectImage').value;
-            const notes = document.getElementById('suspectNotes').value;
-
-            if (editId) {
-                const suspect = suspects.find(s => s.id === editId);
-                if (suspect) {
-                    suspect.name = name;
-                    suspect.role = role;
-                    suspect.pin = pin;
-                    suspect.image = image;
-                    suspect.notes = notes;
-                }
-            } else {
-                const newId = 'sus_' + Date.now();
-                // Place near center of board
-                const x = boardContainer.clientWidth / 2 - 120 + (Math.random() * 60 - 30);
-                const y = boardContainer.clientHeight / 2 - 150 + (Math.random() * 60 - 30);
-                suspects.push({
-                    id: newId,
-                    name,
-                    role,
-                    pin,
-                    image,
-                    notes,
-                    x: Math.max(20, x),
-                    y: Math.max(20, y)
-                });
+            if (confirm("¿Desconectar todos los hilos de inteligencia?")) {
+                connections = [];
+                drawStrings();
             }
-
-            closeModal();
-            renderBoard();
         }
 
-        function deleteSuspect(id) {
-            suspects = suspects.filter(s => s.id !== id);
-            connections = connections.filter(c => c.from !== id && c.to !== id);
-            renderBoard();
+        function saveOperation() {
+            const opName = document.getElementById('op-name').value.trim();
+            if (!opName) return alert("Introduce un nombre de operación.");
+            localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, connections }));
+            alert(`[DELTA GREEN] Operación "${opName}" guardada en memoria local.`);
         }
 
-        function setupPanAndZoom() {
-            // Optional board panning background drag if clicking empty space
-            let isPanning = false;
-            let startX, startY;
-
-            boardContainer.addEventListener('mousedown', (e) => {
-                if (e.target === boardContainer || e.target === canvas) {
-                    isPanning = true;
-                    startX = e.clientX;
-                    startY = e.clientY;
-                }
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isPanning) return;
-                // If needed, implement pan. For now, cards have full freedom.
-            });
-
-            window.addEventListener('mouseup', () => {
-                isPanning = false;
-            });
+        function loadOperation() {
+            const opName = document.getElementById('op-name').value.trim();
+            if (!opName) return;
+            if (localStorage.getItem('dg_op_' + opName)) {
+                initBoard();
+                alert(`[DELTA GREEN] Operación "${opName}" cargada correctamente.`);
+            } else {
+                alert(`No se encontró registro local para "${opName}".`);
+            }
         }
+
+        window.onload = initBoard;
     </script>
 </body>
 </html>
