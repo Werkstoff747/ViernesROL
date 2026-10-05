@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>DELTA GREEN // THE PROGRAM - OPERATION BOARD</title>
-    <!-- SheetJS para importación opcional -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --dg-bg: #0b120e;
@@ -25,6 +23,7 @@
             overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
             background-color: var(--dg-bg);
+            user-select: none;
         }
 
         /* Cabecera Clasificada Delta Green */
@@ -90,10 +89,6 @@
             color: #fff;
         }
 
-        #toolbar input[type="file"] {
-            display: none;
-        }
-
         #board {
             position: relative;
             width: 100vw;
@@ -103,12 +98,19 @@
                               radial-gradient(rgba(0,0,0,0.4) 15%, transparent 16%);
             background-size: 40px 40px;
             background-position: 0 0, 20px 20px;
-            overflow: auto;
+            overflow: hidden;
             cursor: grab;
         }
 
         #board:active {
             cursor: grabbing;
+        }
+
+        .board-container {
+            position: absolute;
+            width: 6000px;
+            height: 6000px;
+            transform-origin: 0 0;
         }
 
         #string-canvas {
@@ -121,13 +123,7 @@
             z-index: 10;
         }
 
-        .board-container {
-            position: absolute;
-            width: 6000px;
-            height: 6000px;
-        }
-
-        /* Ficha de Expediente de Individuo (Estilo Delta Green / Dossier) */
+        /* Ficha de Expediente de Individuo */
         .individual-card {
             position: absolute;
             width: 230px;
@@ -135,10 +131,8 @@
             padding: 10px 10px 15px 10px;
             box-shadow: var(--shadow);
             border-radius: 2px;
-            transform: rotate(-0.5deg);
             transition: box-shadow 0.2s ease;
             z-index: 20;
-            user-select: none;
             border: 1px solid #b5aca0;
         }
 
@@ -158,10 +152,60 @@
             box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 2px 2px 3px rgba(255,255,255,0.7);
             z-index: 30;
             cursor: pointer;
+            transition: transform 0.1s;
         }
+        .pin:hover { transform: translateX(-50%) scale(1.2); }
         .pin.red { background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000); }
         .pin.blue { background: radial-gradient(circle at 30% 30%, #4d94ff, #002266); }
         .pin.yellow { background: radial-gradient(circle at 30% 30%, #ffea4d, #998800); }
+        
+        /* Animación de chincheta seleccionada para conectar */
+        .pin.pulsing {
+            animation: pulse-pin 0.8s infinite alternate;
+        }
+        @keyframes pulse-pin {
+            0% { transform: translateX(-50%) scale(1); box-shadow: 0 0 5px #33ff66; }
+            100% { transform: translateX(-50%) scale(1.4); box-shadow: 0 0 15px #33ff66; }
+        }
+
+        .delete-card-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #800000;
+            color: #fff;
+            border: none;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 35;
+        }
+        .delete-card-btn:hover { background: #ff3333; }
+
+        .pin-color-selector {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            display: flex;
+            gap: 3px;
+            z-index: 35;
+        }
+        .color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 1px solid #000;
+        }
+        .color-dot.red { background: #ff4d4d; }
+        .color-dot.blue { background: #4d94ff; }
+        .color-dot.yellow { background: #ffea4d; }
 
         .individual-img-container {
             width: 100%;
@@ -248,10 +292,10 @@
         <button onclick="toggleMode()">Modo: <span id="mode-name">Mover</span></button>
         <button onclick="addNewCard()">➕ Añadir Individuo</button>
         <button onclick="clearConnections()">Limpiar Hilos</button>
-        <span class="mode-indicator" id="instruction-text">Tablero listo.</span>
+        <span class="mode-indicator" id="instruction-text">Tablero listo. (Arrastra el fondo para moverte)</span>
     </div>
 
-    <div id="board">
+    <div id="board" id="board-viewport">
         <div class="board-container" id="board-container">
             <canvas id="string-canvas" width="6000" height="6000"></canvas>
         </div>
@@ -262,6 +306,40 @@
         let connections = []; 
         let mode = 'move'; 
         let connectingSource = null;
+
+        // Variables de navegación (Pan & Zoom)
+        let panX = 100;
+        let panY = 80;
+        let isPanning = false;
+        let startPanX, startPanY;
+
+        const board = document.getElementById('board');
+        const container = document.getElementById('board-container');
+
+        function updateTransform() {
+            container.style.transform = `translate(${panX}px, ${panY}px)`;
+        }
+
+        // Lógica de desplazamiento por el tablero (Panning)
+        board.addEventListener('mousedown', (e) => {
+            if (e.target === board || e.target === document.getElementById('string-canvas') || e.target === container) {
+                isPanning = true;
+                startPanX = e.clientX - panX;
+                startPanY = e.clientY - panY;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isPanning) {
+                panX = e.clientX - startPanX;
+                panY = e.clientY - startPanY;
+                updateTransform();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+        });
 
         function initBoard() {
             const currentOp = document.getElementById('op-name').value;
@@ -278,15 +356,15 @@
                 ];
                 connections = [{ from: 1, to: 2 }];
             }
+            updateTransform();
             renderBoard();
             drawStrings();
         }
 
         function renderBoard() {
-            const container = document.getElementById('board-container');
+            // Limpiamos tarjetas antiguas manteniendo el canvas
             const canvas = document.getElementById('string-canvas');
-            container.innerHTML = '';
-            container.appendChild(canvas);
+            document.querySelectorAll('.individual-card').forEach(el => el.remove());
 
             individuals.forEach(ind => {
                 const card = document.createElement('div');
@@ -295,8 +373,16 @@
                 card.style.top = ind.y + 'px';
                 card.dataset.id = ind.id;
 
+                const isPulsing = (connectingSource === ind.id) ? 'pulsing' : '';
+
                 card.innerHTML = `
-                    <div class="pin ${ind.pin || 'red'}" onclick="handlePinClick(event, ${ind.id})" title="Clic para tender hilo rojo"></div>
+                    <div class="pin-color-selector">
+                        <div class="color-dot red" onclick="setPinColor(${ind.id}, 'red')" title="Chincheta Roja"></div>
+                        <div class="color-dot blue" onclick="setPinColor(${ind.id}, 'blue')" title="Chincheta Azul"></div>
+                        <div class="color-dot yellow" onclick="setPinColor(${ind.id}, 'yellow')" title="Chincheta Amarilla"></div>
+                    </div>
+                    <button class="delete-card-btn" onclick="deleteCard(${ind.id})" title="Eliminar expediente">✕</button>
+                    <div class="pin ${ind.pin || 'red'} ${isPulsing}" onclick="handlePinClick(event, ${ind.id})" title="Clic para tender/cortar hilo"></div>
                     <div class="individual-img-container" onclick="changeImage(${ind.id})" title="Clic para añadir URL de foto">
                         ${ind.img ? `<img src="${ind.img}" alt="Dossier">` : '<span>[ FOTO - AÑADIR URL ]</span>'}
                     </div>
@@ -307,29 +393,29 @@
                     </div>
                 `;
 
-                let isDragging = false;
+                let isDraggingCard = false;
                 let startX, startY;
 
                 card.addEventListener('mousedown', (e) => {
-                    if (mode !== 'move' || e.target.classList.contains('editable-field') || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('pin')) return;
-                    isDragging = true;
-                    startX = e.clientX - ind.x;
-                    startY = e.clientY - ind.y;
+                    if (mode !== 'move' || e.target.classList.contains('editable-field') || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('pin') || e.target.classList.contains('color-dot') || e.target.classList.contains('delete-card-btn')) return;
+                    isDraggingCard = true;
+                    startX = e.clientX - (ind.x + panX);
+                    startY = e.clientY - (ind.y + panY);
                     card.style.zIndex = 1000;
                     e.stopPropagation();
                 });
 
-                document.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    ind.x = e.clientX - startX;
-                    ind.y = e.clientY - startY;
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDraggingCard) return;
+                    ind.x = (e.clientX - startX) - panX;
+                    ind.y = (e.clientY - startY) - panY;
                     card.style.left = ind.x + 'px';
                     card.style.top = ind.y + 'px';
                     drawStrings();
                 });
 
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
+                window.addEventListener('mouseup', () => {
+                    isDraggingCard = false;
                 });
 
                 container.appendChild(card);
@@ -339,6 +425,23 @@
         function updateField(id, field, value) {
             const item = individuals.find(i => i.id === id);
             if (item) item[field] = value;
+        }
+
+        function setPinColor(id, color) {
+            const item = individuals.find(i => i.id === id);
+            if (item) {
+                item.pin = color;
+                renderBoard();
+            }
+        }
+
+        function deleteCard(id) {
+            if (confirm("¿Destruir este expediente de inteligencia?")) {
+                individuals = individuals.filter(i => i.id !== id);
+                connections = connections.filter(c => c.from !== id && c.to !== id);
+                renderBoard();
+                drawStrings();
+            }
         }
 
         function changeImage(id) {
@@ -354,11 +457,11 @@
             const newId = individuals.length > 0 ? Math.max(...individuals.map(i => i.id)) + 1 : 1;
             individuals.push({
                 id: newId,
-                name: "NUEVO INDIVIDUO",
+                name: "NUEVO EXPEDIENTE",
                 role: "CONTACTO / VÍNCULO",
-                desc: "Notas de inteligencia...",
-                x: 200 + (individuals.length % 5) * 40,
-                y: 200 + (individuals.length % 5) * 40,
+                desc: "Notas de inteligencia clasificada...",
+                x: 100 - panX + (window.innerWidth / 2),
+                y: 100 - panY + (window.innerHeight / 2),
                 pin: "red",
                 img: ""
             });
@@ -387,8 +490,8 @@
 
                     ctx.beginPath();
                     ctx.moveTo(x1, y1);
-                    let cx = (x1 + x2) / 2 + (Math.random() - 0.5) * 12;
-                    let cy = (y1 + y2) / 2 + (Math.random() - 0.5) * 12;
+                    let cx = (x1 + x2) / 2 + 10;
+                    let cy = (y1 + y2) / 2 + 10;
                     ctx.quadraticCurveTo(cx, cy, x2, y2);
                     ctx.stroke();
                 }
@@ -398,13 +501,14 @@
         function toggleMode() {
             if (mode === 'move') {
                 mode = 'connect';
-                document.getElementById('mode-name').innerText = 'Conectar';
-                document.getElementById('instruction-text').innerText = 'Haz clic en dos chinchetas para tender hilo rojo.';
+                document.getElementById('mode-name').innerText = 'Conectar / Cortar Hilo';
+                document.getElementById('instruction-text').innerText = 'Haz clic en dos chinchetas para tender hilo, o haz clic en un hilo existente para cortarlo.';
             } else {
                 mode = 'move';
                 document.getElementById('mode-name').innerText = 'Mover';
-                document.getElementById('instruction-text').innerText = 'Tablero listo.';
+                document.getElementById('instruction-text').innerText = 'Tablero listo. (Arrastra el fondo para moverte)';
                 connectingSource = null;
+                renderBoard();
             }
         }
 
@@ -413,18 +517,57 @@
                 e.stopPropagation();
                 if (connectingSource === null) {
                     connectingSource = id;
+                    renderBoard(); // Para activar la animación de pulso
                 } else {
                     if (connectingSource !== id) {
-                        connections.push({ from: connectingSource, to: id });
-                        drawStrings();
+                        // Comprobar si ya existe la conexión para evitar duplicados exactos
+                        const exists = connections.some(c => (c.from === connectingSource && c.to === id) || (c.from === id && c.to === connectingSource));
+                        if (!exists) {
+                            connections.push({ from: connectingSource, to: id });
+                        }
                     }
                     connectingSource = null;
+                    renderBoard();
+                    drawStrings();
                 }
             }
         }
 
+        // Detectar clics en el canvas de hilos para eliminarlos individualmente en modo conectar
+        document.getElementById('board').addEventListener('click', (e) => {
+            if (mode === 'connect' && (e.target === document.getElementById('string-canvas') || e.target === container)) {
+                // Obtenemos coordenadas relativas al canvas
+                const rect = container.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                // Comprobar cercanía a algún hilo para borrarlo
+                for (let i = connections.length - 1; i >= 0; i--) {
+                    const conn = connections[i];
+                    const fromInd = individuals.find(ind => ind.id === conn.from);
+                    const toInd = individuals.find(ind => ind.id === conn.to);
+                    if (fromInd && toInd) {
+                        const x1 = fromInd.x + 115, y1 = fromInd.y + 10;
+                        const x2 = toInd.x + 115, y2 = toInd.y + 10;
+                        const midX = (x1 + x2) / 2 + 10;
+                        const midY = (y1 + y2) / 2 + 10;
+                        
+                        // Simple comprobación de distancia al punto medio de la curva
+                        const dist = Math.hypot(clickX - midX, clickY - midY);
+                        if (dist < 30) {
+                            if (confirm("¿Cortar este hilo de investigación?")) {
+                                connections.splice(i, 1);
+                                drawStrings();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         function clearConnections() {
-            if (confirm("¿Desconectar todos los hilos de inteligencia?")) {
+            if (confirm("¿Desconectar todos los hilos de inteligencia del tablero?")) {
                 connections = [];
                 drawStrings();
             }
@@ -434,7 +577,7 @@
             const opName = document.getElementById('op-name').value.trim();
             if (!opName) return alert("Introduce un nombre de operación.");
             localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, connections }));
-            alert(`[DELTA GREEN] Operación "${opName}" guardada en memoria local.`);
+            alert(`[DELTA GREEN] Operación "${opName}" guardada en memoria local del navegador.`);
         }
 
         function loadOperation() {
