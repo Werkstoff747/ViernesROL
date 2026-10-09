@@ -294,7 +294,7 @@
             font-weight: bold;
         }
 
-        /* Lightbox Pantalla Completa con Overlay Inferior */
+        /* Lightbox Pantalla Completa Maximizada */
         #lightbox-modal {
             display: none;
             position: fixed;
@@ -302,7 +302,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 5000;
             justify-content: center;
             align-items: center;
@@ -310,8 +310,8 @@
 
         .lightbox-container {
             position: relative;
-            max-width: 92vw;
-            max-height: 92vh;
+            max-width: 96vw;
+            max-height: 97vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -323,8 +323,8 @@
         }
 
         .lightbox-container img {
-            max-width: 92vw;
-            max-height: 90vh;
+            max-width: 96vw;
+            max-height: 95vh;
             object-fit: contain;
             display: block;
         }
@@ -336,25 +336,25 @@
             width: 100%;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(4px);
-            padding: 15px 25px;
+            padding: 12px 20px;
             box-sizing: border-box;
             border-top: 1px solid var(--dg-dim-green);
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .lightbox-caption h2 {
             margin: 0;
             color: #ffffff;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             text-shadow: 2px 2px 6px rgba(0,0,0,0.95);
         }
 
         .lightbox-caption .lb-role {
             color: #ff4d4d;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -512,7 +512,7 @@
         </div>
     </div>
 
-    <!-- Lightbox Pantalla Completa con Overlay Inferior -->
+    <!-- Lightbox Pantalla Completa Maximizada -->
     <div id="lightbox-modal" onclick="if(event.target === this) closeLightbox()">
         <div class="lightbox-container">
             <button class="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -850,132 +850,4 @@
             if (mode === 'move') {
                 mode = 'connect';
                 document.getElementById('mode-name').innerText = 'Conectar / Cortar Hilo';
-                document.getElementById('instruction-text').innerText = 'Haz clic en dos chinchetas para tender hilo, o haz clic en un hilo existente para cortarlo.';
-            } else {
-                mode = 'move';
-                document.getElementById('mode-name').innerText = 'Mover';
-                document.getElementById('instruction-text').innerText = 'Arrastra / Zoom rueda';
-                connectingSource = null;
-                renderBoard();
-            }
-        }
-
-        function handlePinClick(e, id) {
-            if (mode === 'connect') {
-                e.stopPropagation();
-                if (connectingSource === null) {
-                    connectingSource = id;
-                    renderBoard();
-                } else {
-                    if (connectingSource !== id) {
-                        const exists = connections.some(c => (c.from === connectingSource && c.to === id) || (c.from === id && c.to === connectingSource));
-                        if (!exists) {
-                            connections.push({ from: connectingSource, to: id });
-                        }
-                    }
-                    connectingSource = null;
-                    renderBoard();
-                    drawStrings();
-                }
-            }
-        }
-
-        document.getElementById('board').addEventListener('click', (e) => {
-            if (mode === 'connect' && (e.target === document.getElementById('string-canvas') || e.target === container)) {
-                const rect = container.getBoundingClientRect();
-                const clickX = (e.clientX - rect.left) / scale;
-                const clickY = (e.clientY - rect.top) / scale;
-
-                for (let i = connections.length - 1; i >= 0; i--) {
-                    const conn = connections[i];
-                    const fromInd = individuals.find(ind => ind.id === conn.from);
-                    const toInd = individuals.find(ind => ind.id === conn.to);
-                    if (fromInd && toInd) {
-                        const x1 = fromInd.x + 125, y1 = fromInd.y + 10;
-                        const x2 = toInd.x + 125, y2 = toInd.y + 10;
-                        const midX = (x1 + x2) / 2 + 10;
-                        const midY = (y1 + y2) / 2 + 10;
-                        
-                        const dist = Math.hypot(clickX - midX, clickY - midY);
-                        if (dist < 30) {
-                            if (confirm("¿Cortar este hilo de investigación?")) {
-                                connections.splice(i, 1);
-                                drawStrings();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        function clearConnections() {
-            if (confirm("¿Desconectar todos los hilos de inteligencia del tablero?")) {
-                connections = [];
-                drawStrings();
-            }
-        }
-
-        function saveOperation() {
-            const opName = document.getElementById('op-name').value.trim();
-            if (!opName) return alert("Introduce un nombre de operación.");
-            localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, connections, bg: currentBg }));
-            alert(`[DELTA GREEN] Operación "${opName}" guardada en memoria local del navegador.`);
-        }
-
-        function loadOperation() {
-            const opName = document.getElementById('op-name').value.trim();
-            if (!opName) return;
-            if (localStorage.getItem('dg_op_' + opName)) {
-                initBoard();
-                alert(`[DELTA GREEN] Operación "${opName}" cargada correctamente.`);
-            } else {
-                alert(`No se encontró registro local para "${opName}".`);
-            }
-        }
-
-        function exportJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ individuals, connections, bg: currentBg }, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            const opName = document.getElementById('op-name').value.trim() || "operation-board";
-            downloadAnchor.setAttribute("download", opName + ".json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function triggerImportJSON() {
-            document.getElementById('import-json-input').click();
-        }
-
-        function importJSON(event) {
-            const fileReader = new FileReader();
-            if (event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0], "UTF-8");
-                fileReader.onload = function(e) {
-                    try {
-                        const parsed = JSON.parse(e.target.result);
-                        if (parsed.individuals && Array.isArray(parsed.individuals)) {
-                            individuals = parsed.individuals;
-                            connections = parsed.connections || [];
-                            currentBg = parsed.bg || 'cork';
-                            document.getElementById('board-bg-select').value = currentBg;
-                            changeBackground(currentBg);
-                            renderBoard();
-                            drawStrings();
-                            alert("[DELTA GREEN] Tablero importado correctamente desde JSON.");
-                        } else {
-                            alert("El archivo JSON no tiene el formato válido de operación.");
-                        }
-                    } catch (error) {
-                        alert("Error al parsear el archivo JSON.");
-                    }
-                };
-            }
-        }
-
-        window.onload = initBoard;
-    </script>
-</body>
-</html>
+                document.getElementById('instruction-text').
