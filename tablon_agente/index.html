@@ -165,15 +165,21 @@
             100% { transform: translateX(-50%) scale(1.4); box-shadow: 0 0 15px #33ff66; }
         }
 
-        .delete-card-btn {
+        .card-actions {
             position: absolute;
             top: 5px;
             right: 5px;
-            background: #800000;
-            color: #fff;
-            border: none;
-            width: 18px;
-            height: 18px;
+            display: flex;
+            gap: 4px;
+            z-index: 35;
+        }
+
+        .card-action-btn {
+            background: #142218;
+            color: var(--dg-green);
+            border: 1px solid var(--dg-dim-green);
+            width: 20px;
+            height: 20px;
             font-size: 10px;
             font-weight: bold;
             cursor: pointer;
@@ -181,9 +187,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 35;
         }
-        .delete-card-btn:hover { background: #ff3333; }
+        .card-action-btn.edit:hover { background: var(--dg-dim-green); color: #fff; }
+        .card-action-btn.delete { background: #800000; color: #fff; border-color: #500; }
+        .card-action-btn.delete:hover { background: #ff3333; }
 
         .pin-color-selector {
             position: absolute;
@@ -206,7 +213,7 @@
 
         .individual-img-container {
             width: 100%;
-            height: 220px;
+            height: 200px;
             background: #111;
             overflow: hidden;
             border: 1px solid #555;
@@ -225,53 +232,248 @@
             height: 100%;
             object-fit: cover;
             filter: grayscale(0.4) contrast(1.2) sepia(0.2);
+            transition: filter 0.2s;
+        }
+        .individual-img-container:hover img {
+            filter: grayscale(0) contrast(1.1);
         }
 
-        .editable-field {
-            border: 1px dashed transparent;
-            background: transparent;
-            font-family: inherit;
-            width: 100%;
-            box-sizing: border-box;
-            color: inherit;
-        }
-
-        .editable-field:hover, .editable-field:focus {
-            border-color: #800;
-            background: rgba(255,255,255,0.85);
-            outline: none;
-        }
-
-        .individual-info h3 input {
-            font-size: 16px;
+        .individual-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
             font-weight: bold;
             color: #111;
             border-bottom: 1px dashed #999;
-            margin-bottom: 6px;
+            padding-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .individual-role input {
-            font-size: 13px;
+        .individual-role {
+            font-size: 12px;
             color: #900;
             font-weight: bold;
             text-transform: uppercase;
             margin-bottom: 6px;
             letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .individual-desc textarea {
+        .individual-desc {
             font-size: 10px;
             color: #222;
             line-height: 1.25;
-            resize: vertical;
-            height: 45px;
-            background: transparent;
+            max-height: 45px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
         }
 
         .mode-indicator {
             font-size: 10px;
             color: #ffcc00;
             font-weight: bold;
+        }
+
+        /* Lightbox Modal */
+        #lightbox-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 5000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-content {
+            background: #111a14;
+            border: 2px solid var(--dg-dim-green);
+            padding: 25px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            max-width: 850px;
+            width: 90%;
+            position: relative;
+            color: var(--dg-green);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #800000;
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox-close:hover { background: #ff3333; }
+
+        .lightbox-img-box {
+            width: 320px;
+            height: 380px;
+            background: #000;
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .lightbox-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(0.2) contrast(1.1);
+        }
+
+        .lightbox-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .lightbox-details h2 {
+            margin: 0;
+            color: #fff;
+            font-size: 22px;
+            border-bottom: 1px solid var(--dg-dim-green);
+            padding-bottom: 8px;
+        }
+
+        .lightbox-role {
+            color: var(--dg-alert);
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lightbox-desc {
+            color: #e6e2d3;
+            font-size: 12px;
+            line-height: 1.5;
+            background: #0b120e;
+            padding: 10px;
+            border: 1px solid #1e3324;
+            white-space: pre-wrap;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        /* Form Modal (Crear / Editar Ficha) */
+        #form-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 5000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-content {
+            background: #111a14;
+            border: 2px solid var(--dg-dim-green);
+            padding: 25px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+            width: 400px;
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            color: var(--dg-green);
+            position: relative;
+        }
+
+        .form-content h2 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--dg-dim-green);
+            padding-bottom: 6px;
+            color: #fff;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: var(--dg-green);
+        }
+
+        .form-group input, .form-group textarea {
+            background: #050a07;
+            border: 1px solid var(--dg-dim-green);
+            color: #ffcc00;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 12px;
+            border-radius: 2px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 70px;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--dg-green);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .form-actions button {
+            background: #142218;
+            color: var(--dg-green);
+            border: 1px solid var(--dg-dim-green);
+            padding: 8px 14px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        .form-actions button:hover {
+            background: var(--dg-dim-green);
+            color: #fff;
         }
     </style>
 </head>
@@ -290,7 +492,7 @@
         <button onclick="triggerImportJSON()">📥 Importar JSON</button>
         <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(event)">
         <button onclick="toggleMode()">Modo: <span id="mode-name">Mover</span></button>
-        <button onclick="addNewCard()">➕ Añadir</button>
+        <button onclick="addNewCard()">➕ Añadir Ficha</button>
         <button onclick="clearConnections()">Limpiar</button>
         <span class="mode-indicator" id="instruction-text">Arrastra / Zoom rueda</span>
     </div>
@@ -298,6 +500,49 @@
     <div id="board">
         <div class="board-container" id="board-container">
             <canvas id="string-canvas" width="6000" height="6000"></canvas>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" onclick="if(event.target === this) closeLightbox()">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+            <div class="lightbox-img-box">
+                <img id="lb-img" src="" alt="Dossier Ampliado">
+            </div>
+            <div class="lightbox-details">
+                <h2 id="lb-name"></h2>
+                <div id="lb-role" class="lightbox-role"></div>
+                <div id="lb-desc" class="lightbox-desc"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Modal (Crear / Editar Ficha) -->
+    <div id="form-modal" onclick="if(event.target === this) closeFormModal()">
+        <div class="form-content">
+            <h2 id="form-modal-title">NUEVO EXPEDIENTE DE INTELIGENCIA</h2>
+            <input type="hidden" id="form-card-id">
+            <div class="form-group">
+                <label>URL Imagen:</label>
+                <input type="text" id="form-img" placeholder="https://ejemplo.com/foto.jpg">
+            </div>
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" id="form-name" placeholder="Nombre completo del sujeto">
+            </div>
+            <div class="form-group">
+                <label>Cargo / Entidad:</label>
+                <input type="text" id="form-role" placeholder="Ej. MÉDICO FORENSE / TESTIGO">
+            </div>
+            <div class="form-group">
+                <label>Descripción / Notas:</label>
+                <textarea id="form-desc" placeholder="Notas de inteligencia clasificada..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeFormModal()">Cancelar</button>
+                <button type="button" onclick="submitCardForm()">Guardar Ficha</button>
+            </div>
         </div>
     </div>
 
@@ -401,15 +646,20 @@
                         <div class="color-dot blue" onclick="setPinColor(${ind.id}, 'blue')" title="Chincheta Azul"></div>
                         <div class="color-dot yellow" onclick="setPinColor(${ind.id}, 'yellow')" title="Chincheta Amarilla"></div>
                     </div>
-                    <button class="delete-card-btn" onclick="deleteCard(${ind.id})" title="Eliminar expediente">✕</button>
-                    <div class="pin ${ind.pin || 'red'} ${isPulsing}" onclick="handlePinClick(event, ${ind.id})" title="Clic para tender/cortar hilo"></div>
-                    <div class="individual-img-container" onclick="changeImage(${ind.id})" title="Clic para añadir URL de foto">
-                        ${ind.img ? `<img src="${ind.img}" alt="Dossier">` : '<span>[ FOTO RETRATO - AÑADIR URL ]</span>'}
+                    <div class="card-actions">
+                        <button class="card-action-btn edit" onclick="openEditModal(${ind.id})" title="Editar Ficha">✏️</button>
+                        <button class="card-action-btn delete" onclick="deleteCard(${ind.id})" title="Eliminar expediente">✕</button>
                     </div>
+                    <div class="pin ${ind.pin || 'red'} ${isPulsing}" onclick="handlePinClick(event, ${ind.id})" title="Clic para tender/cortar hilo"></div>
+                    
+                    <div class="individual-img-container" onclick="openLightbox(${ind.id})" title="Clic para ampliar foto a pantalla completa">
+                        ${ind.img ? `<img src="${ind.img}" alt="Dossier">` : '<span>[ FOTO RETRATO - SIN IMAGEN ]</span>'}
+                    </div>
+
                     <div class="individual-info">
-                        <h3><input type="text" class="editable-field" value="${ind.name}" onchange="updateField(${ind.id}, 'name', this.value)"></h3>
-                        <div class="individual-role"><input type="text" class="editable-field" value="${ind.role}" onchange="updateField(${ind.id}, 'role', this.value)"></div>
-                        <div class="individual-desc"><textarea class="editable-field" onchange="updateField(${ind.id}, 'desc', this.value)">${ind.desc}</textarea></div>
+                        <h3>${escapeHTML(ind.name)}</h3>
+                        <div class="individual-role">${escapeHTML(ind.role)}</div>
+                        <div class="individual-desc">${escapeHTML(ind.desc)}</div>
                     </div>
                 `;
 
@@ -417,7 +667,7 @@
                 let startX, startY;
 
                 card.addEventListener('mousedown', (e) => {
-                    if (mode !== 'move' || e.target.classList.contains('editable-field') || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('pin') || e.target.classList.contains('color-dot') || e.target.classList.contains('delete-card-btn')) return;
+                    if (mode !== 'move' || e.target.tagName === 'BUTTON' || e.target.classList.contains('card-action-btn') || e.target.classList.contains('pin') || e.target.classList.contains('color-dot') || e.target.classList.contains('individual-img-container') || e.target.tagName === 'IMG') return;
                     isDraggingCard = true;
                     startX = (e.clientX - panX) / scale - ind.x;
                     startY = (e.clientY - panY) / scale - ind.y;
@@ -442,9 +692,99 @@
             });
         }
 
-        function updateField(id, field, value) {
+        function escapeHTML(str) {
+            return (str || "").replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function openLightbox(id) {
             const item = individuals.find(i => i.id === id);
-            if (item) item[field] = value;
+            if (!item) return;
+            const modal = document.getElementById('lightbox-modal');
+            const img = document.getElementById('lb-img');
+            const name = document.getElementById('lb-name');
+            const role = document.getElementById('lb-role');
+            const desc = document.getElementById('lb-desc');
+
+            if (item.img) {
+                img.src = item.img;
+                img.style.display = 'block';
+            } else {
+                img.src = '';
+                img.style.display = 'none';
+            }
+            name.innerText = item.name || "SIN NOMBRE";
+            role.innerText = item.role || "SIN PROFESIÓN / ROL";
+            desc.innerText = item.desc || "Sin detalles de inteligencia.";
+            modal.style.display = 'flex';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').style.display = 'none';
+        }
+
+        function addNewCard() {
+            document.getElementById('form-modal-title').innerText = "NUEVO EXPEDIENTE DE INTELIGENCIA";
+            document.getElementById('form-card-id').value = "";
+            document.getElementById('form-img').value = "";
+            document.getElementById('form-name').value = "";
+            document.getElementById('form-role').value = "";
+            document.getElementById('form-desc').value = "";
+            document.getElementById('form-modal').style.display = 'flex';
+        }
+
+        function openEditModal(id) {
+            const item = individuals.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('form-modal-title').innerText = "EDITAR EXPEDIENTE";
+            document.getElementById('form-card-id').value = item.id;
+            document.getElementById('form-img').value = item.img || "";
+            document.getElementById('form-name').value = item.name || "";
+            document.getElementById('form-role').value = item.role || "";
+            document.getElementById('form-desc').value = item.desc || "";
+            document.getElementById('form-modal').style.display = 'flex';
+        }
+
+        function closeFormModal() {
+            document.getElementById('form-modal').style.display = 'none';
+        }
+
+        function submitCardForm() {
+            const cardId = document.getElementById('form-card-id').value;
+            const imgVal = document.getElementById('form-img').value.trim();
+            const nameVal = document.getElementById('form-name').value.trim() || "EXPEDIENTE SIN NOMBRE";
+            const roleVal = document.getElementById('form-role').value.trim() || "CONTACTO";
+            const descVal = document.getElementById('form-desc').value.trim();
+
+            if (cardId === "") {
+                const newId = individuals.length > 0 ? Math.max(...individuals.map(i => i.id)) + 1 : 1;
+                const centerX = (-panX + window.innerWidth / 2) / scale;
+                const centerY = (-panY + window.innerHeight / 2) / scale;
+
+                individuals.push({
+                    id: newId,
+                    name: nameVal,
+                    role: roleVal,
+                    desc: descVal,
+                    x: centerX - 125,
+                    y: centerY - 150,
+                    pin: "red",
+                    img: imgVal
+                });
+            } else {
+                const item = individuals.find(i => i.id == cardId);
+                if (item) {
+                    item.img = imgVal;
+                    item.name = nameVal;
+                    item.role = roleVal;
+                    item.desc = descVal;
+                }
+            }
+
+            closeFormModal();
+            renderBoard();
+            drawStrings();
         }
 
         function setPinColor(id, color) {
@@ -462,33 +802,6 @@
                 renderBoard();
                 drawStrings();
             }
-        }
-
-        function changeImage(id) {
-            const item = individuals.find(i => i.id === id);
-            const newUrl = prompt("Introduce la URL de la imagen del individuo (Retrato):", item.img || "");
-            if (newUrl !== null) {
-                item.img = newUrl;
-                renderBoard();
-            }
-        }
-
-        function addNewCard() {
-            const newId = individuals.length > 0 ? Math.max(...individuals.map(i => i.id)) + 1 : 1;
-            const centerX = (-panX + window.innerWidth / 2) / scale;
-            const centerY = (-panY + window.innerHeight / 2) / scale;
-            
-            individuals.push({
-                id: newId,
-                name: "NUEVO EXPEDIENTE",
-                role: "CONTACTO / VÍNCULO",
-                desc: "Notas de inteligencia clasificada...",
-                x: centerX - 125,
-                y: centerY - 150,
-                pin: "red",
-                img: ""
-            });
-            renderBoard();
         }
 
         function drawStrings() {
@@ -529,7 +842,7 @@
             } else {
                 mode = 'move';
                 document.getElementById('mode-name').innerText = 'Mover';
-                document.getElementById('instruction-text').innerText = 'Tablero listo. (Arrastra para mover / Rueda para Zoom)';
+                document.getElementById('instruction-text').innerText = 'Arrastra / Zoom rueda';
                 connectingSource = null;
                 renderBoard();
             }
