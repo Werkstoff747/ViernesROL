@@ -60,7 +60,7 @@
             flex-wrap: wrap;
         }
 
-        #toolbar button, #toolbar label, #toolbar input[type="text"] {
+        #toolbar button, #toolbar label, #toolbar input[type="text"], #toolbar select {
             background: #142218;
             color: var(--dg-green);
             border: 1px solid var(--dg-dim-green);
@@ -74,7 +74,7 @@
             box-shadow: inset 0 0 5px rgba(51,255,102,0.1);
         }
 
-        #toolbar input[type="text"] {
+        #toolbar input[type="text"], #toolbar select {
             background: #050a07;
             cursor: text;
             width: 130px;
@@ -83,28 +83,40 @@
             border-color: #554400;
         }
 
+        #toolbar select {
+            cursor: pointer;
+        }
+
         #toolbar button:hover, #toolbar label:hover {
             background: var(--dg-dim-green);
             color: #fff;
         }
 
-        /* Tablero de Corcho Realista */
+        /* Estilos de los Fondos del Tablero */
         #board {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background-color: #b8865c;
-            background-image: 
-                radial-gradient(rgba(0, 0, 0, 0.18) 15%, transparent 16%),
-                radial-gradient(rgba(255, 255, 255, 0.08) 15%, transparent 16%);
-            background-size: 24px 24px;
-            background-position: 0 0, 12px 12px;
             overflow: hidden;
             cursor: grab;
+            transition: background 0.3s ease;
         }
 
         #board:active {
             cursor: grabbing;
+        }
+
+        #board.cork {
+            background-color: #b8865c;
+            background-image: none;
+        }
+
+        #board.whiteboard {
+            background-color: #f4f6f8;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 35px 35px;
         }
 
         .board-container {
@@ -476,6 +488,13 @@
             <label>OP:</label>
             <input type="text" id="op-name" value="OPERATION-STYX">
         </div>
+        <div>
+            <label>Fondo:</label>
+            <select id="board-bg-select" onchange="changeBackground(this.value)">
+                <option value="cork">Corcho</option>
+                <option value="whiteboard">Pizarra Blanca</option>
+            </select>
+        </div>
         <button onclick="saveOperation()">💾 Guardar</button>
         <button onclick="loadOperation()">📂 Cargar</button>
         <button onclick="exportJSON()">📤 Exportar JSON</button>
@@ -487,7 +506,7 @@
         <span class="mode-indicator" id="instruction-text">Arrastra / Zoom rueda</span>
     </div>
 
-    <div id="board">
+    <div id="board" class="cork">
         <div class="board-container" id="board-container">
             <canvas id="string-canvas" width="6000" height="6000"></canvas>
         </div>
@@ -536,6 +555,7 @@
     <script>
         let individuals = [];
         let connections = []; 
+        let currentBg = 'cork';
         let mode = 'move'; 
         let connectingSource = null;
 
@@ -595,6 +615,11 @@
             isPanning = false;
         });
 
+        function changeBackground(type) {
+            currentBg = type;
+            board.className = type;
+        }
+
         function initBoard() {
             const currentOp = document.getElementById('op-name').value;
             const savedData = localStorage.getItem('dg_op_' + currentOp);
@@ -603,13 +628,18 @@
                 const parsed = JSON.parse(savedData);
                 individuals = parsed.individuals || parsed.suspects || [];
                 connections = parsed.connections || [];
+                currentBg = parsed.bg || 'cork';
             } else {
                 individuals = [
                     { id: 1, name: "Dr. Victor March", role: "MÉDICO FORENSE", desc: "Realizó la autopsia no oficial en OMAHA. Muy nervioso.", x: 250, y: 150, pin: "red", img: "" },
                     { id: 2, name: "Sarah Miller", role: "ESPOSA (VÍNCULO)", desc: "Empieza a sospecher de las ausencias prolongadas del agente.", x: 580, y: 200, pin: "blue", img: "" }
                 ];
                 connections = [{ from: 1, to: 2 }];
+                currentBg = 'cork';
             }
+            
+            document.getElementById('board-bg-select').value = currentBg;
+            changeBackground(currentBg);
             updateTransform();
             renderBoard();
             drawStrings();
@@ -889,7 +919,7 @@
         function saveOperation() {
             const opName = document.getElementById('op-name').value.trim();
             if (!opName) return alert("Introduce un nombre de operación.");
-            localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, connections }));
+            localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, connections, bg: currentBg }));
             alert(`[DELTA GREEN] Operación "${opName}" guardada en memoria local del navegador.`);
         }
 
@@ -905,7 +935,7 @@
         }
 
         function exportJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ individuals, connections }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ individuals, connections, bg: currentBg }, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
             const opName = document.getElementById('op-name').value.trim() || "operation-board";
@@ -929,6 +959,9 @@
                         if (parsed.individuals && Array.isArray(parsed.individuals)) {
                             individuals = parsed.individuals;
                             connections = parsed.connections || [];
+                            currentBg = parsed.bg || 'cork';
+                            document.getElementById('board-bg-select').value = currentBg;
+                            changeBackground(currentBg);
                             renderBoard();
                             drawStrings();
                             alert("[DELTA GREEN] Tablero importado correctamente desde JSON.");
