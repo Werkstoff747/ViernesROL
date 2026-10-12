@@ -85,6 +85,11 @@
             border-color: #554400;
         }
 
+        #toolbar input#search-input {
+            width: 110px;
+            color: #33ff66;
+        }
+
         #toolbar select {
             cursor: pointer;
         }
@@ -102,6 +107,10 @@
             overflow: hidden;
             cursor: grab;
             transition: background 0.3s ease;
+        }
+
+        #board.drawing-mode {
+            cursor: crosshair !important;
         }
 
         #board:active {
@@ -128,7 +137,7 @@
             transform-origin: 0 0;
         }
 
-        #string-canvas {
+        #string-canvas, #drawing-canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -136,6 +145,10 @@
             height: 6000px;
             pointer-events: none;
             z-index: 10;
+        }
+
+        #drawing-canvas {
+            z-index: 15; /* Por encima de los hilos y por debajo de las tarjetas */
         }
 
         /* Fichas Polaroid */
@@ -146,7 +159,7 @@
             padding: 10px 10px 15px 10px;
             box-shadow: var(--shadow);
             border-radius: 2px;
-            transition: box-shadow 0.2s ease;
+            transition: box-shadow 0.2s ease, opacity 0.2s ease;
             z-index: 20;
             border: 1px solid #b5aca0;
         }
@@ -169,7 +182,7 @@
             font-size: 20px;
             line-height: 1.3;
             box-sizing: border-box;
-            transition: box-shadow 0.2s ease;
+            transition: box-shadow 0.2s ease, opacity 0.2s ease;
         }
 
         .note-card:hover {
@@ -288,7 +301,7 @@
             filter: grayscale(0) contrast(1.1);
         }
 
-        /* Estilo para Silueta Clasificada */
+        /* Silueta Clasificada */
         .classified-silhouette {
             width: 100%;
             height: 100%;
@@ -361,7 +374,7 @@
             font-weight: bold;
         }
 
-        /* Lightbox Pantalla Completa Maximizada */
+        /* Lightbox Pantalla Completa */
         #lightbox-modal {
             display: none;
             position: fixed;
@@ -449,7 +462,7 @@
         }
         .lightbox-close:hover { background: #ff3333; }
 
-        /* Modales Generales (Crear/Editar Ficha y Notas) */
+        /* Modales Generales */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -575,6 +588,9 @@
                 <option value="whiteboard">Pizarra Blanca</option>
             </select>
         </div>
+        <div>
+            <input type="text" id="search-input" placeholder="🔍 Buscar pista..." oninput="filterBoard(this.value)">
+        </div>
         <button onclick="saveOperation()">💾 Guardar</button>
         <button onclick="loadOperation()">📂 Cargar</button>
         <button onclick="exportJSON()">📤 Exportar JSON</button>
@@ -583,13 +599,14 @@
         <button onclick="toggleMode()">Modo: <span id="mode-name">Mover</span></button>
         <button onclick="addNewCard()">➕ Añadir Ficha</button>
         <button onclick="addNewNote()">➕ Añadir Nota</button>
-        <button onclick="clearConnections()">Limpiar</button>
+        <button onclick="clearBoardData()">Limpiar</button>
         <span class="mode-indicator" id="instruction-text">Arrastra / Zoom rueda</span>
     </div>
 
     <div id="board" class="cork">
         <div class="board-container" id="board-container">
             <canvas id="string-canvas" width="6000" height="6000"></canvas>
+            <canvas id="drawing-canvas" width="6000" height="6000"></canvas>
         </div>
     </div>
 
@@ -666,8 +683,9 @@
         let individuals = [];
         let notes = [];
         let connections = []; 
+        let drawings = []; // Almacena trazos libres (trazos rojos de rotulador)
         let currentBg = 'cork';
-        let mode = 'move'; 
+        let mode = 'move'; // 'move', 'connect', 'draw'
         let connectingSource = null;
 
         let panX = 100;
@@ -676,8 +694,12 @@
         let isPanning = false;
         let startPanX, startPanY;
 
+        let isDrawing = false;
+        let currentPath = [];
+
         const board = document.getElementById('board');
         const container = document.getElementById('board-container');
+        const drawingCanvas = document.getElementById('drawing-canvas');
 
         function updateTransform() {
             container.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
@@ -707,7 +729,17 @@
         }, { passive: false });
 
         board.addEventListener('mousedown', (e) => {
-            if (e.target === board || e.target === document.getElementById('string-canvas') || e.target === container) {
+            if (mode === 'draw') {
+                isDrawing = true;
+                const rect = container.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / scale;
+                const y = (e.clientY - rect.top) / scale;
+                currentPath = [{ x, y }];
+                e.stopPropagation();
+                return;
+            }
+
+            if (e.target === board || e.target === document.getElementById('string-canvas') || e.target === drawingCanvas || e.target === container) {
                 isPanning = true;
                 startPanX = e.clientX - panX;
                 startPanY = e.clientY - panY;
@@ -715,6 +747,16 @@
         });
 
         window.addEventListener('mousemove', (e) => {
+            if (isDrawing && mode === 'draw') {
+                const rect = container.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / scale;
+                const y = (e.clientY - rect.top) / scale;
+                currentPath.push({ x, y });
+                redrawDrawings();
+                drawCurrentPath();
+                return;
+            }
+
             if (isPanning) {
                 panX = e.clientX - startPanX;
                 panY = e.clientY - startPanY;
@@ -723,12 +765,21 @@
         });
 
         window.addEventListener('mouseup', () => {
+            if (isDrawing && mode === 'draw') {
+                isDrawing = false;
+                if (currentPath.length > 1) {
+                    drawings.push([...currentPath]);
+                }
+                currentPath = [];
+                redrawDrawings();
+                return;
+            }
             isPanning = false;
         });
 
         function changeBackground(type) {
             currentBg = type;
-            board.className = type;
+            board.className = type + (mode === 'draw' ? ' drawing-mode' : '');
         }
 
         function initBoard() {
@@ -740,6 +791,7 @@
                 individuals = parsed.individuals || parsed.suspects || [];
                 notes = parsed.notes || [];
                 connections = parsed.connections || [];
+                drawings = parsed.drawings || [];
                 currentBg = parsed.bg || 'cork';
             } else {
                 individuals = [
@@ -750,6 +802,7 @@
                     { id: 'n1', text: "Revisar los informes forenses de Omaha antes del viernes.", color: "yellow", x: 280, y: 420, pin: "yellow" }
                 ];
                 connections = [{ from: 1, to: 2 }];
+                drawings = [];
                 currentBg = 'cork';
             }
             
@@ -758,6 +811,7 @@
             updateTransform();
             renderBoard();
             drawStrings();
+            redrawDrawings();
         }
 
         function findItem(id) {
@@ -822,6 +876,7 @@
                 let startX, startY;
 
                 card.addEventListener('mousedown', (e) => {
+                    if (mode === 'draw') return; // En modo dibujo no arrastramos fichas
                     if (mode !== 'move' || e.target.tagName === 'BUTTON' || e.target.classList.contains('card-action-btn') || e.target.classList.contains('pin') || e.target.classList.contains('color-dot') || e.target.classList.contains('individual-img-container') || e.target.tagName === 'IMG' || e.target.tagName === 'svg' || e.target.tagName === 'path') return;
                     isDraggingCard = true;
                     startX = (e.clientX - panX) / scale - ind.x;
@@ -869,6 +924,7 @@
                 let startX, startY;
 
                 noteEl.addEventListener('mousedown', (e) => {
+                    if (mode === 'draw') return;
                     if (mode !== 'move' || e.target.tagName === 'BUTTON' || e.target.classList.contains('card-action-btn') || e.target.classList.contains('pin')) return;
                     isDraggingNote = true;
                     startX = (e.clientX - panX) / scale - note.x;
@@ -892,6 +948,62 @@
 
                 container.appendChild(noteEl);
             });
+
+            // Aplicar búsqueda actual si hay texto
+            const query = document.getElementById('search-input').value;
+            if (query) filterBoard(query);
+        }
+
+        function filterBoard(query) {
+            const q = query.toLowerCase().trim();
+            document.querySelectorAll('.individual-card, .note-card').forEach(el => {
+                const cardText = el.innerText.toLowerCase();
+                if (!q || cardText.includes(q)) {
+                    el.style.opacity = '1';
+                    el.style.boxShadow = q ? '0 0 25px #ffcc00' : 'var(--shadow)';
+                } else {
+                    el.style.opacity = '0.25';
+                    el.style.boxShadow = 'var(--shadow)';
+                }
+            });
+        }
+
+        function redrawDrawings() {
+            const ctx = drawingCanvas.getContext('2d');
+            ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            
+            ctx.strokeStyle = '#cc2222'; // Rojo rotulador permanente
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 4;
+
+            drawings.forEach(path => {
+                if (path.length < 2) return;
+                ctx.beginPath();
+                ctx.moveTo(path[0].x, path[0].y);
+                for (let i = 1; i < path.length; i++) {
+                    ctx.lineTo(path[i].x, path[i].y);
+                }
+                ctx.stroke();
+            });
+        }
+
+        function drawCurrentPath() {
+            if (currentPath.length < 2) return;
+            const ctx = drawingCanvas.getContext('2d');
+            ctx.strokeStyle = '#cc2222';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(currentPath[0].x, currentPath[0].y);
+            for (let i = 1; i < currentPath.length; i++) {
+                ctx.lineTo(currentPath[i].x, currentPath[i].y);
+            }
+            ctx.stroke();
         }
 
         function escapeHTML(str) {
@@ -1063,6 +1175,7 @@
             if (item) {
                 item.pin = color;
                 renderBoard();
+                drawStrings();
             }
         }
 
@@ -1080,7 +1193,12 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = '#b22222'; 
+            const pinColorMap = {
+                'red': '#b22222',
+                'blue': '#2563eb',
+                'yellow': '#ca8a04'
+            };
+
             ctx.lineWidth = 2.5;
             ctx.shadowColor = 'rgba(0,0,0,0.9)';
             ctx.shadowBlur = 6;
@@ -1098,6 +1216,9 @@
                     const x2 = toItem.x + (widthTo / 2);
                     const y2 = toItem.y + 10;
 
+                    const pinType = fromItem.pin || 'red';
+                    ctx.strokeStyle = pinColorMap[pinType] || '#b22222';
+
                     ctx.beginPath();
                     ctx.moveTo(x1, y1);
                     let cx = (x1 + x2) / 2 + 10;
@@ -1113,10 +1234,19 @@
                 mode = 'connect';
                 document.getElementById('mode-name').innerText = 'Conectar / Cortar Hilo';
                 document.getElementById('instruction-text').innerText = 'Haz clic en dos chinchetas para tender hilo, o haz clic en un hilo existente para cortarlo.';
+                board.classList.remove('drawing-mode');
+            } else if (mode === 'connect') {
+                mode = 'draw';
+                document.getElementById('mode-name').innerText = 'Dibujar (Tachar)';
+                document.getElementById('instruction-text').innerText = 'Dibuja con el rotulador rojo libremente sobre el corcho (cruces, círculos, etc.).';
+                board.classList.add('drawing-mode');
+                connectingSource = null;
+                renderBoard();
             } else {
                 mode = 'move';
                 document.getElementById('mode-name').innerText = 'Mover';
                 document.getElementById('instruction-text').innerText = 'Arrastra / Zoom rueda';
+                board.classList.remove('drawing-mode');
                 connectingSource = null;
                 renderBoard();
             }
@@ -1143,7 +1273,7 @@
         }
 
         document.getElementById('board').addEventListener('click', (e) => {
-            if (mode === 'connect' && (e.target === document.getElementById('string-canvas') || e.target === container)) {
+            if (mode === 'connect' && (e.target === document.getElementById('string-canvas') || e.target === drawingCanvas || e.target === container)) {
                 const rect = container.getBoundingClientRect();
                 const clickX = (e.clientX - rect.left) / scale;
                 const clickY = (e.clientY - rect.top) / scale;
@@ -1173,17 +1303,22 @@
             }
         });
 
-        function clearConnections() {
-            if (confirm("¿Desconectar todos los hilos de inteligencia del tablero?")) {
+        function clearBoardData() {
+            let opcion = prompt("¿Qué deseas limpiar?\n1. Borrar todos los hilos rojos\n2. Borrar todos los trazos de dibujo\n3. Borrar AMBAS cosas", "3");
+            if (opcion === "1" || opcion === "3") {
                 connections = [];
                 drawStrings();
+            }
+            if (opcion === "2" || opcion === "3") {
+                drawings = [];
+                redrawDrawings();
             }
         }
 
         function saveOperation() {
             const opName = document.getElementById('op-name').value.trim();
             if (!opName) return alert("Introduce un nombre de operación.");
-            localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, notes, connections, bg: currentBg }));
+            localStorage.setItem('dg_op_' + opName, JSON.stringify({ individuals, notes, connections, drawings, bg: currentBg }));
             alert(`[DELTA GREEN] Operación "${opName}" guardada en memoria local del navegador.`);
         }
 
@@ -1199,7 +1334,7 @@
         }
 
         function exportJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ individuals, notes, connections, bg: currentBg }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ individuals, notes, connections, drawings, bg: currentBg }, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
             const opName = document.getElementById('op-name').value.trim() || "operation-board";
@@ -1224,11 +1359,13 @@
                             individuals = parsed.individuals;
                             notes = parsed.notes || [];
                             connections = parsed.connections || [];
+                            drawings = parsed.drawings || [];
                             currentBg = parsed.bg || 'cork';
                             document.getElementById('board-bg-select').value = currentBg;
                             changeBackground(currentBg);
                             renderBoard();
                             drawStrings();
+                            redrawDrawings();
                             alert("[DELTA GREEN] Tablero importado correctamente desde JSON.");
                         } else {
                             alert("El archivo JSON no tiene el formato válido de operación.");
