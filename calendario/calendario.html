@@ -128,7 +128,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
-            margin-bottom: 60px;
+            margin-bottom: 50px;
         }
 
         .calendar-card {
@@ -149,10 +149,14 @@
             box-shadow: 0 10px 25px rgba(217, 167, 74, 0.15);
         }
 
-        /* Estilo especial para tarjeta pendiente ("JUEGO") */
         .calendar-card.pending {
             border: 1px dashed var(--card-border);
             background-color: rgba(26, 35, 51, 0.6);
+        }
+
+        /* Estilo atenuado para el historial de pasadas */
+        .calendar-card.past {
+            opacity: 0.75;
         }
 
         .card-cover {
@@ -232,6 +236,64 @@
         }
 
         /* =========================================================
+            ACORDEÓN / DESPLEGABLE DE HISTÓRICO
+            ========================================================= */
+        .history-section {
+            margin: 40px 0 60px 0;
+            text-align: left;
+            border-top: 1px solid var(--card-border);
+            padding-top: 30px;
+        }
+
+        .history-details {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px 25px;
+            transition: border-color 0.3s;
+        }
+
+        .history-details:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .history-summary {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--accent-gold);
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            outline: none;
+        }
+
+        .history-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .history-summary::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .history-details[open] .history-summary::after {
+            transform: rotate(180deg);
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        /* =========================================================
             BOTONES FLOTANTES Y FOOTER
             ========================================================= */
         .floating-btn-container {
@@ -302,10 +364,22 @@
             </div>
         </header>
 
-        <!-- Cuadrícula dinámica de eventos -->
+        <!-- Próximas Partidas -->
         <main class="calendar-grid" id="calendarGrid">
             <p style="color: var(--text-muted); grid-column: 1 / -1;">Cargando fechas y partidas próximas...</p>
         </main>
+
+        <!-- Sección Desplegable para Histórico de Partidas Pasadas -->
+        <section class="history-section" id="historySection" style="display: none;">
+            <details class="history-details">
+                <summary class="history-summary">
+                    <span><i class="fa-solid fa-clock-rotate-left" style="margin-right: 10px;"></i> Historial de Partidas Anteriores</span>
+                </summary>
+                <div class="history-grid" id="historyGrid">
+                    <!-- Las tarjetas pasadas se cargarán aquí -->
+                </div>
+            </details>
+        </section>
 
         <footer>
             Los viernes, Rol &mdash; Partidas y Aventuras Presenciales
@@ -323,7 +397,6 @@
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?gid=432079409&single=true&output=csv';
 
     window.addEventListener('DOMContentLoaded', () => {
-        // SEGURIDAD: Comprobar autenticación por sessionStorage
         if (sessionStorage.getItem('viernes_rol_auth') !== 'true') {
             window.location.href = '../index.html';
             return;
@@ -344,6 +417,9 @@
 
     async function cargarCalendarioDesdeSheet() {
         const gridContainer = document.getElementById('calendarGrid');
+        const historyGrid = document.getElementById('historyGrid');
+        const historySection = document.getElementById('historySection');
+
         try {
             const response = await fetch(csvUrl);
             const data = await response.text();
@@ -356,8 +432,10 @@
                 return;
             }
 
-            let htmlContent = '';
-            let partidasVisibles = 0;
+            let htmlProximas = '';
+            let htmlHistorico = '';
+            let contadorProximas = 0;
+            let contadorHistorico = 0;
 
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
@@ -365,20 +443,24 @@
             filasDeDatos.forEach(row => {
                 const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
                 
-                const juegoOriginal = columns[0] || '';
-                const aventura = columns[1] || '';
+                const juegoOriginal = (columns[0] || '').trim();
+                const aventuraOriginal = (columns[1] || '').trim();
                 const fechaStr = columns[2] || '';
                 const sistema = columns[3] || '';
                 const dj = columns[4] || '';
                 const ausencias = columns[5] || '';
                 const imagen = columns[6] || '';
 
-                // REGLA 1: Si la celda JUEGO está EN BLANCO, la descartamos por completo
-                if (!juegoOriginal) {
+                const juegoUpper = juegoOriginal.toUpperCase();
+                const aventuraUpper = aventuraOriginal.toUpperCase();
+
+                // Filtrar celdas vacías o de plantilla en blanco/sistema
+                if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || aventuraUpper === 'EN BLANCO') {
                     return;
                 }
 
-                // REGLA 2: Si la fecha es anterior a hoy, la descartamos
+                // Evaluar si la fecha es pasada o futura
+                let esPasada = false;
                 if (fechaStr) {
                     const partesFecha = fechaStr.split('/');
                     if (partesFecha.length === 3) {
@@ -388,32 +470,27 @@
                         const fechaPartida = new Date(anio, mes, dia);
 
                         if (fechaPartida < hoy) {
-                            return;
+                            esPasada = true;
                         }
                     }
                 }
 
-                partidasVisibles++;
-
-                // REGLA 3: Si el valor de JUEGO es exactamente "JUEGO", lo tratamos como "Nueva página" pendiente de definir
-                const esPendiente = juegoOriginal.toUpperCase() === 'JUEGO';
+                // Construcción visual de la tarjeta
+                const esPendiente = juegoUpper === 'JUEGO';
                 const tituloMostrar = esPendiente ? 'Nueva página' : juegoOriginal;
-                const claseTarjeta = esPendiente ? 'calendar-card pending' : 'calendar-card';
+                const claseTarjeta = esPendiente ? 'calendar-card pending' : (esPasada ? 'calendar-card past' : 'calendar-card');
 
-                // Si es pendiente ("JUEGO"), no mostramos imagen de portada superior (queda con el estilo Notion vacío)
                 const imgSrc = (!esPendiente && imagen) ? `../imagenes/${imagen}` : '';
                 const imgHtml = imgSrc ? `<div class="card-cover"><img src="${imgSrc}" alt="${tituloMostrar}" onerror="this.parentElement.style.display='none'"></div>` : '';
 
-                // Si es pendiente, mostramos solo los datos que tenga (como ausencias o fecha si aplica)
-                const sistemaHtml = (!esPendiente && sistema) ? `<span class="meta-tag"><i class="fa-solid fa-dice-d20" style="margin-right: 4px;"></i>${sistema}</span>` : '';
-                const djHtml = (!esPendiente && dj) ? `<span class="meta-tag dj"><i class="fa-solid fa-user-shield" style="margin-right: 4px;"></i>DJ: ${dj}</span>` : '';
+                const sistemaHtml = (!esPendiente && sistema && sistema.toUpperCase() !== 'SISTEMA') ? `<span class="meta-tag"><i class="fa-solid fa-dice-d20" style="margin-right: 4px;"></i>${sistema}</span>` : '';
+                const djHtml = (!esPendiente && dj && dj.toUpperCase().includes('DIRECTOR')) ? '' : (dj ? `<span class="meta-tag dj"><i class="fa-solid fa-user-shield" style="margin-right: 4px;"></i>DJ: ${dj}</span>` : '');
                 
-                // Las ausencias sí pueden salir en las pendientes (como en tu captura que sale el icono de ausencia con el nombre)
-                const ausenciasHtml = ausencias ? `<span class="meta-tag absence"><i class="fa-solid fa-ban" style="margin-right: 4px;"></i>${ausencias}</span>` : '';
-                const aventuraHtml = aventura ? `<p class="card-adventure">${aventura}</p>` : '';
+                const ausenciasHtml = (ausencias && ausencias !== '-') ? `<span class="meta-tag absence"><i class="fa-solid fa-ban" style="margin-right: 4px;"></i>${ausencias}</span>` : '';
+                const aventuraHtml = (aventuraOriginal && aventuraOriginal !== 'AVENTURA' && aventuraUpper !== 'EN BLANCO') ? `<p class="card-adventure">${aventuraOriginal}</p>` : '';
                 const fechaHtml = fechaStr ? `<div class="card-date"><i class="fa-regular fa-calendar"></i> ${fechaStr}</div>` : '';
 
-                htmlContent += `
+                const cardHTML = `
                     <div class="${claseTarjeta}">
                         ${imgHtml}
                         <div class="card-body">
@@ -428,12 +505,28 @@
                         </div>
                     </div>
                 `;
+
+                if (esPasada) {
+                    contadorHistorico++;
+                    htmlHistorico += cardHTML;
+                } else {
+                    contadorProximas++;
+                    htmlProximas += cardHTML;
+                }
             });
 
-            if (partidasVisibles === 0) {
+            // Volcar resultados en las secciones correspondientes
+            if (contadorProximas === 0) {
                 gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay próximas partidas visibles para las fechas actuales.</p>';
             } else {
-                gridContainer.innerHTML = htmlContent;
+                gridContainer.innerHTML = htmlProximas;
+            }
+
+            if (contadorHistorico > 0) {
+                historyGrid.innerHTML = htmlHistorico;
+                historySection.style.display = 'block'; // Mostrar el desplegable si hay historial
+            } else {
+                historySection.style.display = 'none';
             }
 
         } catch (error) {
