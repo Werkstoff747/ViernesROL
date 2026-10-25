@@ -477,11 +477,11 @@
                 }
 
                 const esPendiente = juegoUpper === 'JUEGO';
-                const tituloMostrar = esPendiente ? 'Nueva página' : juegoOriginal;
+                const tituloMostrar = esPendiente ? 'Pendiente decidir...' : juegoOriginal;
                 const claseTarjeta = esPendiente ? 'calendar-card pending' : (esPasada ? 'calendar-card past' : 'calendar-card');
 
                 // CONSTRUCCIÓN DE LA RUTA DE LA IMAGEN:
-                const imgSrc = (!esPendiente && imagen) ? `imagenes/${imagen}` : '';
+                const imgSrc = imagen ? `imagenes/${imagen}` : '';
                 const imgHtml = imgSrc ? `<div class="card-cover"><img src="${imgSrc}" alt="${tituloMostrar}" onerror="this.parentElement.style.display='none'"></div>` : '';
 
                 const sistemaHtml = (!esPendiente && sistema && sistema.toUpperCase() !== 'SISTEMA') ? `<span class="meta-tag"><i class="fa-solid fa-dice-d20" style="margin-right: 4px;"></i>${sistema}</span>` : '';
