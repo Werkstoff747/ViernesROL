@@ -6,12 +6,12 @@
     <title>Los viernes, Rol - Calendario de Partidas</title>
 
     <!-- Favicon -->
-   <link rel="icon" type="image/png" href="imagenes/dado_logo.png">
+    <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
 
-    <!-- Google Fonts: Permanent Marker, Cinzel & Inter -->
+    <!-- Google Fonts: Permanent Marker & Inter (Sin Cinzel) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
 
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -154,14 +154,14 @@
             background-color: rgba(26, 35, 51, 0.6);
         }
 
-        /* Estilo atenuado para el historial de pasadas */
         .calendar-card.past {
             opacity: 0.75;
         }
 
+        /* Contenedor de la imagen adaptado a la proporción 1000x333 (Panorámica) */
         .card-cover {
             width: 100%;
-            height: 140px;
+            height: 120px; /* Altura ideal para tarjeta manteniendo proporción panorámica */
             background-color: #0f131a;
             position: relative;
             overflow: hidden;
@@ -182,10 +182,11 @@
             flex-grow: 1;
         }
 
+        /* Título del juego con fuente limpia Inter (Sin Cinzel) */
         .card-game-title {
-            font-family: 'Cinzel', serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 700;
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             color: var(--text-main);
         }
 
@@ -258,9 +259,9 @@
         }
 
         .history-summary {
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            font-size: 1.15rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
             color: var(--accent-gold);
             cursor: pointer;
             list-style: none;
@@ -449,12 +450,12 @@
                 const sistema = columns[3] || '';
                 const dj = columns[4] || '';
                 const ausencias = columns[5] || '';
-                const imagen = columns[6] || '';
+                const imagen = (columns[6] || '').trim(); // Columna G: Nombre de la imagen
 
                 const juegoUpper = juegoOriginal.toUpperCase();
                 const aventuraUpper = aventuraOriginal.toUpperCase();
 
-                // Filtrar celdas vacías o de plantilla en blanco/sistema
+                // Filtrar filas vacías o de plantilla
                 if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || aventuraUpper === 'EN BLANCO') {
                     return;
                 }
@@ -475,11 +476,12 @@
                     }
                 }
 
-                // Construcción visual de la tarjeta
                 const esPendiente = juegoUpper === 'JUEGO';
                 const tituloMostrar = esPendiente ? 'Nueva página' : juegoOriginal;
                 const claseTarjeta = esPendiente ? 'calendar-card pending' : (esPasada ? 'calendar-card past' : 'calendar-card');
 
+                // CONSTRUCCIÓN DE LA RUTA DE LA IMAGEN:
+                // Si la celda de imagen tiene contenido y no es una tarjeta pendiente, busca en ../imagenes/[nombre]
                 const imgSrc = (!esPendiente && imagen) ? `../imagenes/${imagen}` : '';
                 const imgHtml = imgSrc ? `<div class="card-cover"><img src="${imgSrc}" alt="${tituloMostrar}" onerror="this.parentElement.style.display='none'"></div>` : '';
 
@@ -515,16 +517,15 @@
                 }
             });
 
-            // Volcar resultados en las secciones correspondientes
             if (contadorProximas === 0) {
                 gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay próximas partidas visibles para las fechas actuales.</p>';
             } else {
-                gridContainer.innerHTML = htmlProximas;
+                gridContainer.innerHTML = htmlContent;
             }
 
             if (contadorHistorico > 0) {
                 historyGrid.innerHTML = htmlHistorico;
-                historySection.style.display = 'block'; // Mostrar el desplegable si hay historial
+                historySection.style.display = 'block';
             } else {
                 historySection.style.display = 'none';
             }
@@ -555,7 +556,7 @@
         } else {
             document.body.classList.remove('light-mode');
         }
-        actualizarIconoTema();
+        actualizarIconoTune = actualizarIconoTema();
     }
 
     themeToggleBtns.forEach(btn => {
