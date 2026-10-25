@@ -77,10 +77,10 @@
         }
 
         /* =========================================================
-            CABECERA ADAPTATIVA CON TRAZO DE ROTULADOR Y DADO PNG
+            CABECERA ADAPTATIVA CON DADO GRANDE Y ROTULADOR
             ========================================================= */
         header {
-            padding: 30px 20px;
+            padding: 35px 20px;
             border-bottom: 2px solid var(--header-border);
             margin-bottom: 50px;
             transition: border-color 0.3s ease;
@@ -90,39 +90,41 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 25px;
+            gap: 30px;
             flex-wrap: wrap;
         }
 
+        /* Dado con mayor empaque y tamaño */
         .header-dice {
-            height: 75px;
+            height: 110px;
             width: auto;
             object-fit: contain;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
         }
 
         .header-text {
             text-align: left;
         }
 
+        /* "LOS VIERNES," con la fuente de rotulador pero más sutil */
         .header-subtitle-top {
-            font-family: 'Inter', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.3rem;
             color: var(--text-main);
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             display: block;
-            text-transform: uppercase;
+            opacity: 0.9;
         }
 
+        /* "ROL" muy grande y con estilo rotulador protagonista */
         .header-title {
-            font-family: 'Permanent Marker', cursive; /* Estilo trazo de rotulador */
-            font-size: 3.2rem;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 4.5rem;
             color: var(--marker-red);
-            line-height: 1.1;
-            letter-spacing: 1px;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
-            margin: 2px 0;
+            line-height: 0.95;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+            margin: 4px 0 8px 0;
         }
 
         p.community-sub {
@@ -130,6 +132,7 @@
             color: var(--text-muted);
             letter-spacing: 1px;
             font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
         }
 
         /* =========================================================
@@ -199,7 +202,7 @@
         }
 
         .hub-title {
-            font-family: 'Cinzel', serif; /* Corte clásico para títulos (y adaptable a Terror/Vampiro) */
+            font-family: 'Cinzel', serif; /* Mantiene la elegancia clásica (y perfecta para Terror/Vampiro) */
             font-weight: 700;
             font-size: 1.4rem;
             margin-bottom: 12px;
@@ -313,6 +316,7 @@
             .hub-grid { grid-template-columns: 1fr; }
             .header-content { flex-direction: column; text-align: center; }
             .header-text { text-align: center; }
+            .header-title { font-size: 3.5rem; }
         }
     </style>
 </head>
@@ -321,7 +325,7 @@
 <div class="container">
     <header>
         <div class="header-content">
-            <!-- Dado rojo en PNG ubicado en la carpeta imagenes/ -->
+            <!-- Dado rojo en PNG de mayor tamaño ubicado en imagenes/ -->
             <img src="imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
             
             <!-- Cabecera adaptable con tipografía de rotulador -->
