@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los viernes, Rol - Plantilla Base</title>
+
+    <!-- Favicon unificado -->
+    <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
+
+    <!-- Google Fonts: Permanent Marker & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SDK de Firebase para control de acceso -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        /* =========================================================
+            VARIABLES DE TEMA (INTERFAZ DE ROL CLÁSICA)
+            ========================================================= */
+        :root {
+            --bg-color: #121824;
+            --card-bg: #1A2333;
+            --card-border: #334155;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --accent-gold: #D9A74A;
+            --accent-gold-hover: #e6b85c;
+            --header-border: #D9A74A;
+            --marker-red: #E63946;
+        }
+
+        body.light-mode {
+            --bg-color: #D0D2D6;
+            --card-bg: #F4F4F6;
+            --card-border: #A9AEB6;
+            --text-main: #2b2628;
+            --text-muted: #6b6366;
+            --accent-gold: #9c7326;
+            --accent-gold-hover: #7d5b1b;
+            --header-border: #9c7326;
+            --marker-red: #C52233;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* =========================================================
+            CABECERA ESTÁNDAR
+            ========================================================= */
+        header {
+            padding: 35px 20px;
+            border-bottom: 2px solid var(--header-border);
+            margin-bottom: 40px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .header-dice {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
+        .header-text {
+            text-align: left;
+        }
+
+        .header-subtitle-top {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            letter-spacing: 1.5px;
+            display: block;
+        }
+
+        .header-title {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 3.5rem;
+            color: var(--marker-red);
+            line-height: 1;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            margin: 2px 0;
+        }
+
+        /* =========================================================
+            CONTENEDOR DE CONTENIDO PRINCIPAL (SECCIÓN DE TRABAJO)
+            ========================================================= */
+        .main-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 60px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .main-section h2 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--accent-gold);
+        }
+
+        .main-section p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* =========================================================
+            BOTONES FLOTANTES Y FOOTER
+            ========================================================= */
+        .floating-btn-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .floating-action-btn, .scroll-top-btn, .home-floating-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--card-border);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .floating-action-btn:hover, .scroll-top-btn:hover, .home-floating-btn:hover {
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
+            border-color: var(--accent-gold);
+            transform: scale(1.1);
+        }
+
+        .scroll-top-btn {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .scroll-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="../imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
+                <div class="header-text">
+                    <span class="header-subtitle-top">Sección de</span>
+                    <h1 class="header-title">PLANTILLA</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido de la página -->
+        <main class="main-section">
+            <h2>Título de la sección</h2>
+            <p>Este es el esqueleto base estandarizado para cualquier subpágina del Hub. Cuenta con validación de sesión, diseño adaptativo y controles flotantes integrados.</p>
+        </main>
+
+        <footer>
+            Los viernes, Rol &mdash; Partidas y Aventuras Presenciales
+        </footer>
+    </div>
+
+    <!-- BOTONES FLOTANTES DE NAVEGACIÓN -->
+    <div class="floating-btn-container">
+        <a href="../index.html" class="home-floating-btn" title="Volver al inicio"><i class="fa-solid fa-house"></i></a>
+        <button class="floating-action-btn theme-toggle-btn" title="Cambiar modo claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+        <button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Subir arriba"><i class="fa-solid fa-arrow-up"></i></button>
+    </div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        // Validación de seguridad por sessionStorage con Firebase
+        if (sessionStorage.getItem('viernes_rol_auth') !== 'true') {
+            window.location.href = '../index.html';
+            return;
+        }
+
+        initTheme();
+
+        // Control de visibilidad del botón de scroll superior
+        window.addEventListener('scroll', () => {
+            const scrollTopBtn = document.getElementById("scrollTopBtn");
+            if (window.scrollY > 200) {
+                scrollTopBtn.classList.add("show");
+            } else {
+                scrollTopBtn.classList.remove("show");
+            }
+        });
+    });
+
+    // Lógica de modo claro / oscuro persistente
+    const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
+
+    function actualizarIconoTema() {
+        const esClaro = document.body.classList.contains("light-mode");
+        themeToggleBtns.forEach(btn => {
+            if (esClaro) {
+                btn.innerHTML = '<i class="fa-regular fa-sun"></i>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+            }
+        });
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('viernes-rol-theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+        }
+        actualizarIconoTema();
+    }
+
+    themeToggleBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.body.classList.toggle("light-mode");
+            const isLight = document.body.classList.contains("light-mode");
+            localStorage.setItem('viernes-rol-theme', isLight ? 'light' : 'dark');
+            actualizarIconoTema();
+        });
+    });
+
+    // Función de desplazamiento suave hacia arriba
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
