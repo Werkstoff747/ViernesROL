@@ -481,7 +481,6 @@
                 const claseTarjeta = esPendiente ? 'calendar-card pending' : (esPasada ? 'calendar-card past' : 'calendar-card');
 
                 // CONSTRUCCIÓN DE LA RUTA DE LA IMAGEN:
-                // Si la celda de imagen tiene contenido y no es una tarjeta pendiente, busca en ../imagenes/[nombre]
                 const imgSrc = (!esPendiente && imagen) ? `../imagenes/${imagen}` : '';
                 const imgHtml = imgSrc ? `<div class="card-cover"><img src="${imgSrc}" alt="${tituloMostrar}" onerror="this.parentElement.style.display='none'"></div>` : '';
 
@@ -520,7 +519,7 @@
             if (contadorProximas === 0) {
                 gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay próximas partidas visibles para las fechas actuales.</p>';
             } else {
-                gridContainer.innerHTML = htmlContent;
+                gridContainer.innerHTML = htmlProximas; // <-- Corregido para volcar el contenido correcto
             }
 
             if (contadorHistorico > 0) {
@@ -556,7 +555,7 @@
         } else {
             document.body.classList.remove('light-mode');
         }
-        actualizarIconoTune = actualizarIconoTema();
+        actualizarIconoTema(); // <-- Corregido el error tipográfico de asignación
     }
 
     themeToggleBtns.forEach(btn => {
