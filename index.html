@@ -148,13 +148,12 @@
             display: none;
         }
 
-        /* Ocultar el contenido principal hasta que se valide */
         #mainContent {
             display: none;
         }
 
         /* =========================================================
-            CABECERA Y RESTO DE ESTILOS
+            CABECERA
             ========================================================= */
         header {
             padding: 35px 20px;
@@ -208,6 +207,9 @@
             text-transform: uppercase;
         }
 
+        /* =========================================================
+            CUADRÍCULA DE TARJETAS DEL HUB
+            ========================================================= */
         .hub-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -262,10 +264,12 @@
             object-fit: contain;
         }
 
+        /* TÍTULO DE LA TARJETA CON TIPOGRAFÍA DE ROTULADOR (Permanent Marker) */
         .hub-title {
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            font-size: 1.4rem;
+            font-family: 'Permanent Marker', cursive;
+            font-weight: 400;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
             margin-bottom: 12px;
             color: var(--text-main);
         }
@@ -308,6 +312,9 @@
             color: var(--bg-color);
         }
 
+        /* =========================================================
+            BOTONES FLOTANTES
+            ========================================================= */
         .floating-btn-container {
             position: fixed;
             bottom: 25px;
@@ -375,7 +382,7 @@
         </div>
     </div>
 
-    <!-- CONTENIDO PRINCIPAL DE LA WEB (Oculto inicialmente) -->
+    <!-- CONTENIDO PRINCIPAL DE LA WEB -->
     <div id="mainContent" class="container">
         <header>
             <div class="header-content">
@@ -383,7 +390,7 @@
                 <div class="header-text">
                     <span class="header-subtitle-top">Los viernes,</span>
                     <h1 class="header-title">ROL</h1>
-                    <p class="community-sub">Comunidad de Rol Presencial</p>
+                    <p class="community-sub">Viernes, rol y el Quinto Elemento: El combo definitivo de Zaragoza.</p>
                 </div>
             </div>
         </header>
@@ -406,7 +413,7 @@
 <script>
     // Configuración de tu Firebase Realtime Database
     const firebaseConfig = {
-        databaseURL: "https://drrol-chat-default-rtdb.europe-west1.firebasedatabase.app/" // <--- REEMPLAZA CON TU URL DE FIREBASE
+        databaseURL: "https://drrol-chat-default-rtdb.europe-west1.firebasedatabase.app/"
     };
 
     // Inicializar Firebase
@@ -424,7 +431,6 @@
     const loginBtn = document.getElementById('loginBtn');
     const authError = document.getElementById('authError');
 
-    // Verificar si ya se autenticó en esta sesión del navegador
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
         
@@ -432,7 +438,6 @@
             desbloquearWeb();
         }
 
-        // Eventos de login
         loginBtn.addEventListener('click', verificarContrasena);
         passwordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') verificarContrasena();
@@ -456,12 +461,10 @@
         loginBtn.disabled = true;
 
         try {
-            // Consultar la clave en la ruta password_viernes de Firebase
             const snapshot = await db.ref('password_viernes').once('value');
             const passwordReal = snapshot.val();
 
             if (passwordIngresada === passwordReal) {
-                // Contraseña correcta: Guardar en sessionStorage para evitar repetir login en la misma pestaña
                 sessionStorage.setItem('viernes_rol_auth', 'true');
                 desbloquearWeb();
             } else {
