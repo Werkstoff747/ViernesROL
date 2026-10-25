@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los viernes, Rol - Calendario de Partidas</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../imagenes/rolkit_fav.png">
+
+    <!-- Google Fonts: Permanent Marker, Cinzel & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================================
+            VARIABLES DE TEMA (INTERFAZ DE ROL CLÁSICA)
+            ========================================================= */
+        :root {
+            --bg-color: #121824;
+            --card-bg: #1A2333;
+            --card-border: #334155;
+            --text-main: #E2E8F0;
+            --text-muted: #94A3B8;
+            --accent-gold: #D9A74A;
+            --accent-gold-hover: #e6b85c;
+            --header-border: #D9A74A;
+            --badge-bg: rgba(217, 167, 74, 0.15);
+            --badge-border: #D9A74A;
+            --marker-red: #E63946;
+            --tag-bg: rgba(51, 65, 85, 0.6);
+        }
+
+        body.light-mode {
+            --bg-color: #D0D2D6;
+            --card-bg: #F4F4F6;
+            --card-border: #A9AEB6;
+            --text-main: #2b2628;
+            --text-muted: #6b6366;
+            --accent-gold: #9c7326;
+            --accent-gold-hover: #7d5b1b;
+            --header-border: #9c7326;
+            --badge-bg: rgba(156, 115, 38, 0.12);
+            --badge-border: #9c7326;
+            --marker-red: #C52233;
+            --tag-bg: rgba(169, 174, 182, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* =========================================================
+            CABECERA
+            ========================================================= */
+        header {
+            padding: 35px 20px;
+            border-bottom: 2px solid var(--header-border);
+            margin-bottom: 40px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .header-dice {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+        }
+
+        .header-text {
+            text-align: left;
+        }
+
+        .header-subtitle-top {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            letter-spacing: 1.5px;
+            display: block;
+        }
+
+        .header-title {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 3.5rem;
+            color: var(--marker-red);
+            line-height: 1;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+            margin: 2px 0;
+        }
+
+        /* =========================================================
+            ESTILO NOTION DE TARJETAS DE CALENDARIO
+            ========================================================= */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .calendar-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .calendar-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 10px 25px rgba(217, 167, 74, 0.15);
+        }
+
+        .card-cover {
+            width: 100%;
+            height: 140px;
+            background-color: #0f131a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .card-game-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .card-adventure {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .card-date {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
+        .meta-tag {
+            font-size: 0.78rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            background-color: var(--tag-bg);
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+        }
+
+        .meta-tag.dj {
+            background-color: rgba(217, 167, 74, 0.12);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .meta-tag.absence {
+            background-color: rgba(230, 57, 70, 0.15);
+            border-color: var(--marker-red);
+            color: var(--marker-red);
+        }
+
+        /* =========================================================
+            BOTONES FLOTANTES Y FOOTER
+            ========================================================= */
+        .floating-btn-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .floating-action-btn, .scroll-top-btn, .home-floating-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--card-border);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .floating-action-btn:hover, .scroll-top-btn:hover, .home-floating-btn:hover {
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
+            border-color: var(--accent-gold);
+            transform: scale(1.1);
+        }
+
+        .scroll-top-btn {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .scroll-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="../imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
+                <div class="header-text">
+                    <span class="header-subtitle-top">Calendario de</span>
+                    <h1 class="header-title">PARTIDAS</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Cuadrícula dinámica de eventos -->
+        <main class="calendar-grid" id="calendarGrid">
+            <p style="color: var(--text-muted); grid-column: 1 / -1;">Cargando fechas y partidas próximas...</p>
+        </main>
+
+        <footer>
+            Los viernes, Rol &mdash; Partidas y Aventuras Presenciales
+        </footer>
+    </div>
+
+    <!-- BOTONES FLOTANTES -->
+    <div class="floating-btn-container">
+        <a href="../index.html" class="home-floating-btn" title="Volver al inicio"><i class="fa-solid fa-house"></i></a>
+        <button class="floating-action-btn theme-toggle-btn" title="Cambiar modo claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+        <button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Subir arriba"><i class="fa-solid fa-arrow-up"></i></button>
+    </div>
+
+<script>
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?gid=432079409&single=true&output=csv';
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        cargarCalendarioDesdeSheet();
+
+        window.addEventListener('scroll', () => {
+            const scrollTopBtn = document.getElementById("scrollTopBtn");
+            if (window.scrollY > 200) {
+                scrollTopBtn.classList.add("show");
+            } else {
+                scrollTopBtn.classList.remove("show");
+            }
+        });
+    });
+
+    async function cargarCalendarioDesdeSheet() {
+        const gridContainer = document.getElementById('calendarGrid');
+        try {
+            const response = await fetch(csvUrl);
+            const data = await response.text();
+            
+            const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0);
+            const filasDeDatos = rows.slice(1);
+
+            if (filasDeDatos.length === 0) {
+                gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay partidas programadas.</p>';
+                return;
+            }
+
+            let htmlContent = '';
+            let partidasVisibles = 0;
+
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            filasDeDatos.forEach(row => {
+                const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
+                
+                const juego = columns[0] || '';
+                const aventura = columns[1] || '';
+                const fechaStr = columns[2] || '';
+                const sistema = columns[3] || '';
+                const dj = columns[4] || '';
+                const ausencias = columns[5] || '';
+                const imagen = columns[6] || '';
+
+                if (!juego || !fechaStr) return;
+
+                const partesFecha = fechaStr.split('/');
+                if (partesFecha.length === 3) {
+                    const dia = parseInt(partesFecha[0], 10);
+                    const mes = parseInt(partesFecha[1], 10) - 1;
+                    const anio = parseInt(partesFecha[2], 10);
+                    const fechaPartida = new Date(anio, mes, dia);
+
+                    // Ocultar si la fecha de la partida ya ha pasado
+                    if (fechaPartida < hoy) {
+                        return;
+                    }
+                }
+
+                partidasVisibles++;
+
+                const imgSrc = imagen ? `../imagenes/${imagen}` : '';
+                const imgHtml = imgSrc ? `<div class="card-cover"><img src="${imgSrc}" alt="${juego}" onerror="this.parentElement.style.display='none'"></div>` : '';
+
+                const sistemaHtml = sistema ? `<span class="meta-tag"><i class="fa-solid fa-dice-d20" style="margin-right: 4px;"></i>${sistema}</span>` : '';
+                const djHtml = dj ? `<span class="meta-tag dj"><i class="fa-solid fa-user-shield" style="margin-right: 4px;"></i>DJ: ${dj}</span>` : '';
+                const ausenciasHtml = ausencias ? `<span class="meta-tag absence"><i class="fa-solid fa-ban" style="margin-right: 4px;"></i>${ausencias}</span>` : '';
+                const aventuraHtml = aventura ? `<p class="card-adventure">${aventura}</p>` : '';
+
+                htmlContent += `
+                    <div class="calendar-card">
+                        ${imgHtml}
+                        <div class="card-body">
+                            <h2 class="card-game-title">${juego}</h2>
+                            ${aventuraHtml}
+                            <div class="card-date">
+                                <i class="fa-regular fa-calendar"></i> ${fechaStr}
+                            </div>
+                            <div class="card-meta-tags">
+                                ${sistemaHtml}
+                                ${djHtml}
+                                ${ausenciasHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (partidasVisibles === 0) {
+                gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay próximas partidas visibles para las fechas actuales.</p>';
+            } else {
+                gridContainer.innerHTML = htmlContent;
+            }
+
+        } catch (error) {
+            console.error('Error al cargar el Google Sheet del calendario:', error);
+            gridContainer.innerHTML = '<p style="color: var(--accent-gold); grid-column: 1 / -1;">Error al conectar con el calendario de la comunidad.</p>';
+        }
+    }
+
+    const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
+
+    function actualizarIconoTema() {
+        const esClaro = document.body.classList.contains("light-mode");
+        themeToggleBtns.forEach(btn => {
+            if (esClaro) {
+                btn.innerHTML = '<i class="fa-regular fa-sun"></i>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+            }
+        });
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('viernes-rol-theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+        }
+        actualizarIconoTema();
+    }
+
+    themeToggleBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.body.classList.toggle("light-mode");
+            const isLight = document.body.classList.contains("light-mode");
+            localStorage.setItem('viernes-rol-theme', isLight ? 'light' : 'dark');
+            actualizarIconoTema();
+        });
+    });
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
