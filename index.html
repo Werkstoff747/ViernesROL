@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los viernes, Rol - Hub de Campañas y Herramientas</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="imagenes/rolkit_fav.png">
+
+    <!-- Google Fonts: Cinzel & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================================
+            VARIABLES DE TEMA (INTERFAZ DE ROL CLÁSICA)
+            ========================================================= */
+        :root {
+            --bg-color: #121824;          /* Azul noche muy oscuro */
+            --card-bg: #1A2333;           /* Azul grisáceo oscuro */
+            --card-border: #334155;       /* Gris pizarra */
+            --text-main: #E2E8F0;         /* Blanco roto / Gris muy claro */
+            --text-muted: #94A3B8;        /* Gris secundario legible */
+            --accent-gold: #D9A74A;       /* Oro viejo / Dorado apagado */
+            --accent-gold-hover: #e6b85c;
+            --header-border: #D9A74A;     /* Línea de cabecera en oro viejo */
+            --badge-bg: rgba(217, 167, 74, 0.15);
+            --badge-border: #D9A74A;
+        }
+
+        body.light-mode {
+            --bg-color: #D0D2D6;          /* Base clara principal */
+            --card-bg: #F4F4F6;           /* Fondo de tarjetas */
+            --card-border: #A9AEB6;       /* Bordes de tarjetas */
+            --text-main: #2b2628;         /* Texto principal oscuro */
+            --text-muted: #6b6366;        /* Texto secundario */
+            --accent-gold: #9c7326;       /* Oro viejo más oscuro para contraste en claro */
+            --accent-gold-hover: #7d5b1b;
+            --header-border: #9c7326;
+            --badge-bg: rgba(156, 115, 38, 0.12);
+            --badge-border: #9c7326;
+        }
+
+        /* =========================================================
+            ESTILOS GENERALES
+            ========================================================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* =========================================================
+            CABECERA MÍSTICA CON LOGOTIPO
+            ========================================================= */
+        header {
+            padding: 40px 20px 30px 20px;
+            border-bottom: 2px solid var(--header-border);
+            margin-bottom: 40px;
+            transition: border-color 0.3s ease;
+        }
+
+        .logo-container {
+            max-width: 320px;
+            margin: 0 auto 15px auto;
+        }
+
+        .site-logo {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: filter 0.3s ease;
+        }
+
+        p.subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* =========================================================
+            CUADRÍCULA DE HERRAMIENTAS (DINÁMICA DESDE GOOGLE SHEETS)
+            ========================================================= */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .hub-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 35px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-gold);
+            transition: background 0.3s ease;
+        }
+
+        .hub-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 10px 25px rgba(217, 167, 74, 0.15);
+        }
+
+        .hub-icon {
+            height: 80px;
+            width: 100%;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .hub-icon img {
+            max-height: 100%;
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .hub-card:hover .hub-icon {
+            transform: scale(1.1);
+        }
+
+        .hub-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .hub-desc {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Estilo para la etiqueta NOTA (Badge) */
+        .hub-badge {
+            display: inline-block;
+            background-color: var(--badge-bg);
+            border: 1px solid var(--badge-border);
+            color: var(--accent-gold);
+            font-size: 0.78rem;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .hub-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: transparent;
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            transition: all 0.2s ease;
+        }
+
+        .hub-card:hover .hub-btn {
+            background: var(--accent-gold);
+            color: var(--bg-color);
+        }
+
+        /* =========================================================
+            BOTONES FLOTANTES INFERIORES
+            ========================================================= */
+        .floating-btn-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .floating-action-btn, .scroll-top-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--card-border);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .floating-action-btn:hover, .scroll-top-btn:hover {
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
+            border-color: var(--accent-gold);
+            transform: scale(1.1);
+        }
+
+        .scroll-top-btn {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
+        }
+
+        .scroll-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* =========================================================
+            PIE DE PÁGINA
+            ========================================================= */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--card-border);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 600px) {
+            .hub-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-container">
+            <a href="index.html">
+                <!-- Logotipo oficial de Los viernes, Rol -->
+                <img src="imagenes/Viernes-ROL.jpg" alt="Los viernes, Rol" class="site-logo">
+            </a>
+        </div>
+        <p class="subtitle">Comunidad de Rol Presencial</p>
+    </header>
+
+    <!-- Cuadrícula dinámica desde Google Sheets -->
+    <main class="hub-grid" id="hubGrid">
+        <p style="color: var(--text-muted); grid-column: 1 / -1;">Invocando campañas y archivos de la comunidad...</p>
+    </main>
+
+    <footer>
+        Los viernes, Rol &mdash; Partidas y Aventuras Presenciales
+    </footer>
+</div>
+
+<!-- BOTONES FLOTANTES INFERIORES -->
+<div class="floating-btn-container">
+    <button class="floating-action-btn theme-toggle-btn" title="Cambiar modo claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+    <button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Subir arriba"><i class="fa-solid fa-arrow-up"></i></button>
+</div>
+
+<script>
+    // Enlace CSV del Google Sheet configurado para las 5 columnas: LOGO, TÍTULO, DESCRIPCIÓN, NOTA, ENLACE
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?output=csv';
+
+    async function cargarTarjetasDesdeSheet() {
+        const gridContainer = document.getElementById('hubGrid');
+        try {
+            const response = await fetch(csvUrl);
+            const data = await response.text();
+            
+            const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0);
+            const filasDeDatos = rows.slice(1); // Omitir la fila de cabecera
+
+            if (filasDeDatos.length === 0) {
+                gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay elementos registrados en este momento.</p>';
+                return;
+            }
+
+            let htmlContent = '';
+
+            filasDeDatos.forEach(row => {
+                // Parseo robusto de CSV respetando comillas y comas internas
+                const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
+                
+                const logo = columns[0] || 'imagenes/default.png';
+                const titulo = columns[1] || 'Sin título';
+                const descripcion = columns[2] || '';
+                const nota = columns[3] || '';
+                const enlace = columns[4] || '#';
+
+                // Renderizar la etiqueta NOTA (Badge) solo si existe contenido en esa columna
+                const badgeHtml = nota ? `<span class="hub-badge"><i class="fa-solid fa-bookmark" style="margin-right: 5px;"></i>${nota}</span>` : '';
+
+                htmlContent += `
+                    <a href="${enlace}" class="hub-card">
+                        <div class="hub-icon">
+                            <img src="${logo}" alt="${titulo}">
+                        </div>
+                        <h2 class="hub-title">${titulo}</h2>
+                        ${badgeHtml}
+                        <p class="hub-desc">${descripcion}</p>
+                        <span class="hub-btn">Acceder</span>
+                    </a>
+                `;
+            });
+
+            gridContainer.innerHTML = htmlContent;
+
+        } catch (error) {
+            console.error('Error al cargar el Google Sheet:', error);
+            gridContainer.innerHTML = '<p style="color: var(--accent-gold); grid-column: 1 / -1;">Error al conectar con los archivos de la comunidad.</p>';
+        }
+    }
+
+    const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
+
+    function actualizarIconoTema() {
+        const esClaro = document.body.classList.contains("light-mode");
+        themeToggleBtns.forEach(btn => {
+            if (esClaro) {
+                btn.innerHTML = '<i class="fa-regular fa-sun"></i>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+            }
+        });
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('viernes-rol-theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+        }
+        actualizarIconoTema();
+    }
+
+    themeToggleBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.body.classList.toggle("light-mode");
+            const isLight = document.body.classList.contains("light-mode");
+            localStorage.setItem('viernes-rol-theme', isLight ? 'light' : 'dark');
+            actualizarIconoTema();
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        cargarTarjetasDesdeSheet();
+
+        window.addEventListener('scroll', () => {
+            const scrollTopBtn = document.getElementById("scrollTopBtn");
+            if (window.scrollY > 200) {
+                scrollTopBtn.classList.add("show");
+            } else {
+                scrollTopBtn.classList.remove("show");
+            }
+        });
+    });
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
