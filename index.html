@@ -264,7 +264,6 @@
             object-fit: contain;
         }
 
-        /* TÍTULO DE LA TARJETA CON TIPOGRAFÍA DE ROTULADOR (Permanent Marker) */
         .hub-title {
             font-family: 'Permanent Marker', cursive;
             font-weight: 400;
@@ -411,12 +410,10 @@
     </div>
 
 <script>
-    // Configuración de tu Firebase Realtime Database
     const firebaseConfig = {
         databaseURL: "https://drrol-chat-default-rtdb.europe-west1.firebasedatabase.app/"
     };
 
-    // Inicializar Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -424,7 +421,6 @@
 
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?output=csv';
 
-    // ELEMENTOS DE AUTENTICACIÓN
     const authOverlay = document.getElementById('authOverlay');
     const mainContent = document.getElementById('mainContent');
     const passwordInput = document.getElementById('passwordInput');
@@ -515,7 +511,10 @@
             filasDeDatos.forEach(row => {
                 const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
                 
-                const logo = columns[0] || 'imagenes/default.png';
+                // Procesamiento robusto de la ruta de la imagen desde la Columna A
+                const logoColumnaA = (columns[0] || '').trim();
+                const logo = logoColumnaA ? (logoColumnaA.startsWith('imagenes/') ? logoColumnaA : `imagenes/${logoColumnaA}`) : 'imagenes/default.png';
+                
                 const titulo = columns[1] || 'Sin título';
                 const descripcion = columns[2] || '';
                 const nota = columns[3] || '';
