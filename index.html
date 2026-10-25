@@ -8,10 +8,10 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="imagenes/rolkit_fav.png">
 
-    <!-- Google Fonts: Cinzel & Inter -->
+    <!-- Google Fonts: Permanent Marker (Rotulador), Cinzel & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600&family=Permanent+Marker&display=swap" rel="stylesheet">
 
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,6 +31,7 @@
             --header-border: #D9A74A;     /* Línea de cabecera en oro viejo */
             --badge-bg: rgba(217, 167, 74, 0.15);
             --badge-border: #D9A74A;
+            --marker-red: #E63946;        /* Rojo rotulador vibrante */
         }
 
         body.light-mode {
@@ -44,6 +45,7 @@
             --header-border: #9c7326;
             --badge-bg: rgba(156, 115, 38, 0.12);
             --badge-border: #9c7326;
+            --marker-red: #C52233;
         }
 
         /* =========================================================
@@ -75,29 +77,56 @@
         }
 
         /* =========================================================
-            CABECERA MÍSTICA CON LOGOTIPO
+            CABECERA ADAPTATIVA CON TRAZO DE ROTULADOR Y DADO PNG
             ========================================================= */
         header {
-            padding: 40px 20px 30px 20px;
+            padding: 30px 20px;
             border-bottom: 2px solid var(--header-border);
-            margin-bottom: 40px;
+            margin-bottom: 50px;
             transition: border-color 0.3s ease;
         }
 
-        .logo-container {
-            max-width: 320px;
-            margin: 0 auto 15px auto;
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
         }
 
-        .site-logo {
-            width: 100%;
-            height: auto;
+        .header-dice {
+            height: 75px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .header-text {
+            text-align: left;
+        }
+
+        .header-subtitle-top {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 2px;
             display: block;
-            transition: filter 0.3s ease;
+            text-transform: uppercase;
         }
 
-        p.subtitle {
-            font-size: 1.05rem;
+        .header-title {
+            font-family: 'Permanent Marker', cursive; /* Estilo trazo de rotulador */
+            font-size: 3.2rem;
+            color: var(--marker-red);
+            line-height: 1.1;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            margin: 2px 0;
+        }
+
+        p.community-sub {
+            font-size: 0.95rem;
             color: var(--text-muted);
             letter-spacing: 1px;
             font-family: 'Inter', sans-serif;
@@ -108,9 +137,9 @@
             ========================================================= */
         .hub-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 30px;
-            margin-bottom: 50px;
+            margin-bottom: 70px;
         }
 
         .hub-card {
@@ -147,9 +176,9 @@
         }
 
         .hub-icon {
-            height: 80px;
+            height: 70px;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -170,7 +199,7 @@
         }
 
         .hub-title {
-            font-family: 'Cinzel', serif;
+            font-family: 'Cinzel', serif; /* Corte clásico para títulos (y adaptable a Terror/Vampiro) */
             font-weight: 700;
             font-size: 1.4rem;
             margin-bottom: 12px;
@@ -186,7 +215,7 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* Estilo para la etiqueta NOTA (Badge) */
+        /* Etiqueta NOTA (Badge) */
         .hub-badge {
             display: inline-block;
             background-color: var(--badge-bg);
@@ -195,14 +224,14 @@
             font-size: 0.78rem;
             font-family: 'Cinzel', serif;
             font-weight: 600;
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 20px;
             margin-bottom: 20px;
             letter-spacing: 0.5px;
         }
 
         .hub-btn {
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 6px;
             font-family: 'Cinzel', serif;
             font-weight: 600;
@@ -271,16 +300,19 @@
             ========================================================= */
         footer {
             text-align: center;
-            padding: 20px;
+            padding: 30px 20px;
             font-size: 0.85rem;
             color: var(--text-muted);
             border-top: 1px solid var(--card-border);
             font-family: 'Inter', sans-serif;
             letter-spacing: 1px;
+            margin-top: 20px;
         }
 
         @media (max-width: 600px) {
             .hub-grid { grid-template-columns: 1fr; }
+            .header-content { flex-direction: column; text-align: center; }
+            .header-text { text-align: center; }
         }
     </style>
 </head>
@@ -288,13 +320,17 @@
 
 <div class="container">
     <header>
-        <div class="logo-container">
-            <a href="index.html">
-                <!-- Logotipo oficial de Los viernes, Rol -->
-                <img src="imagenes/Viernes-ROL.jpg" alt="Los viernes, Rol" class="site-logo">
-            </a>
+        <div class="header-content">
+            <!-- Dado rojo en PNG ubicado en la carpeta imagenes/ -->
+            <img src="imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
+            
+            <!-- Cabecera adaptable con tipografía de rotulador -->
+            <div class="header-text">
+                <span class="header-subtitle-top">Los viernes,</span>
+                <h1 class="header-title">ROL</h1>
+                <p class="community-sub">Comunidad de Rol Presencial</p>
+            </div>
         </div>
-        <p class="subtitle">Comunidad de Rol Presencial</p>
     </header>
 
     <!-- Cuadrícula dinámica desde Google Sheets -->
@@ -314,7 +350,6 @@
 </div>
 
 <script>
-    // Enlace CSV del Google Sheet configurado para las 5 columnas: LOGO, TÍTULO, DESCRIPCIÓN, NOTA, ENLACE
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?output=csv';
 
     async function cargarTarjetasDesdeSheet() {
@@ -324,7 +359,7 @@
             const data = await response.text();
             
             const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0);
-            const filasDeDatos = rows.slice(1); // Omitir la fila de cabecera
+            const filasDeDatos = rows.slice(1);
 
             if (filasDeDatos.length === 0) {
                 gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay elementos registrados en este momento.</p>';
@@ -334,7 +369,6 @@
             let htmlContent = '';
 
             filasDeDatos.forEach(row => {
-                // Parseo robusto de CSV respetando comillas y comas internas
                 const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
                 
                 const logo = columns[0] || 'imagenes/default.png';
@@ -343,17 +377,16 @@
                 const nota = columns[3] || '';
                 const enlace = columns[4] || '#';
 
-                // Renderizar la etiqueta NOTA (Badge) solo si existe contenido en esa columna
                 const badgeHtml = nota ? `<span class="hub-badge"><i class="fa-solid fa-bookmark" style="margin-right: 5px;"></i>${nota}</span>` : '';
 
                 htmlContent += `
                     <a href="${enlace}" class="hub-card">
                         <div class="hub-icon">
-                            <img src="${logo}" alt="${titulo}">
+                            <img src="${logo}" alt="${titulo}" onerror="this.style.display='none'">
                         </div>
                         <h2 class="hub-title">${titulo}</h2>
-                        ${badgeHtml}
                         <p class="hub-desc">${descripcion}</p>
+                        ${badgeHtml}
                         <span class="hub-btn">Acceder</span>
                     </a>
                 `;
