@@ -317,6 +317,12 @@
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?gid=432079409&single=true&output=csv';
 
     window.addEventListener('DOMContentLoaded', () => {
+        // SEGURIDAD: Si intentan entrar por URL directa sin pasar por el login, redirigir al inicio
+        if (sessionStorage.getItem('viernes_rol_auth') !== 'true') {
+            window.location.href = '../index.html';
+            return;
+        }
+
         initTheme();
         cargarCalendarioDesdeSheet();
 
@@ -370,7 +376,6 @@
                     const anio = parseInt(partesFecha[2], 10);
                     const fechaPartida = new Date(anio, mes, dia);
 
-                    // Ocultar si la fecha de la partida ya ha pasado
                     if (fechaPartida < hoy) {
                         return;
                     }
