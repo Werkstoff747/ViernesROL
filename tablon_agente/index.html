@@ -141,7 +141,8 @@
         }
 
         .card-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 4px; z-index: 35; }
-        .card-action-btn { background: #142218; color: #33ff66; border: 1px solid #1a8c3e; width: 20px; height: 20px; font-size: 10px; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .card-action-btn { background: #142218; color: #33ff66; border: 1px solid #1a8c3e; width: 22px; height: 22px; font-size: 11px; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .card-action-btn:hover { transform: scale(1.1); }
         .card-action-btn.edit:hover { background: #1a8c3e; color: #fff; }
         .card-action-btn.delete { background: #800000; color: #fff; border-color: #500; }
         .card-action-btn.delete:hover { background: #ff3333; }
@@ -168,12 +169,12 @@
 
         /* Lightbox Pantalla Completa */
         #lightbox-modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 10000; justify-content: center; align-items: center; }
-        .lightbox-container { position: relative; max-width: 96vw; max-height: 97vh; display: flex; justify-content: center; align-items: center; border: 2px solid var(--accent-gold); box-shadow: 0 0 60px rgba(0,0,0,0.95); background: #000; overflow: hidden; border-radius: 3px; }
-        .lightbox-container img { max-width: 96vw; max-height: 95vh; object-fit: contain; display: block; }
-        .lightbox-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); padding: 12px 20px; box-sizing: border-box; border-top: 1px solid var(--accent-gold); display: flex; flex-direction: column; gap: 2px; text-align: left; }
-        .lightbox-caption h2 { margin: 0; color: #ffffff; font-size: 20px; font-weight: bold; }
-        .lightbox-caption .lb-role { color: #ff4d4d; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; }
-        .lightbox-close { position: absolute; top: 12px; right: 12px; background: #800000; color: #fff; border: none; width: 32px; height: 32px; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .lightbox-container { position: relative; max-width: 90vw; max-height: 90vh; display: flex; justify-content: center; align-items: center; border: 2px solid var(--accent-gold); box-shadow: 0 0 60px rgba(0,0,0,0.95); background: #000; border-radius: 4px; overflow: hidden; }
+        .lightbox-container img { max-width: 90vw; max-height: 85vh; object-fit: contain; display: block; }
+        .lightbox-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); padding: 15px 20px; box-sizing: border-box; border-top: 1px solid var(--accent-gold); display: flex; flex-direction: column; gap: 4px; text-align: left; }
+        .lightbox-caption h2 { margin: 0; color: #ffffff; font-size: 22px; font-weight: bold; }
+        .lightbox-caption .lb-role { color: #ff4d4d; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; }
+        .lightbox-close { position: absolute; top: 12px; right: 12px; background: #800000; color: #fff; border: none; width: 36px; height: 36px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .lightbox-close:hover { background: #ff3333; }
 
         /* Modales Generales */
@@ -225,7 +226,7 @@
                         <tr><td>Herramienta Mover</td><td><span class="key-badge">V</span></td></tr>
                         <tr><td>Conectar/Cortar Hilo</td><td><span class="key-badge">C</span> (Clic en chincheta/hilo)</td></tr>
                         <tr><td>Rotulador Rojo</td><td><span class="key-badge">D</span> + Arrastrar ratón</td></tr>
-                        <tr><td>Borrar Seleccionado</td><td><span class="key-badge">Supr</span></td></tr>
+                        <tr><td>Borrar Seleccionado</td><td><span class="key-badge">Supr</span> / <span class="key-badge">Backspace</span></td></tr>
                         <tr><td>Zoom</td><td><span class="key-badge">Rueda Ratón</span></td></tr>
                     </table>
                 </div>
@@ -323,6 +324,9 @@
     let saveTimeout;
     const urlParams = new URLSearchParams(window.location.search);
     const isTVMode = urlParams.get('mode') === 'tv';
+
+    // SVG inline seguro para fotos por defecto
+    const DEFAULT_PHOTO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 24 24" fill="%23D9A74A"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>`;
 
     // ==========================================
     // SINCRONIZACIÓN AUTOMÁTICA
@@ -439,7 +443,6 @@
     function centerCamera() { panX = 100; panY = 50; scale = 1; updateTransform(); }
     function updateTransform() { container.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`; }
 
-    // Búsqueda flexible de elemento usando comparaciones permisivas (==)
     function findItem(id) { 
         return items.cards.find(c => c.id == id) || items.notes.find(n => n.id == id); 
     }
@@ -448,11 +451,19 @@
     }
 
     // ==========================================
-    // CONTROLES DE TECLADO Y RATÓN
+    // CONTROLES DE TECLADO Y RATÓN (CORREGIDOS)
     // ==========================================
+    const modeBtnMap = { move: 'btn-mode-v', connect: 'btn-mode-c', draw: 'btn-mode-d' };
+
     window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        if (e.code === 'Space' && boardView.style.display === 'block') { e.preventDefault(); isSpacePressed = true; boardView.style.cursor = 'grab'; }
+        if (boardView.style.display !== 'block') return;
+
+        if (e.code === 'Space') { 
+            e.preventDefault(); 
+            isSpacePressed = true; 
+            boardView.style.cursor = 'grab'; 
+        }
         if (e.key.toLowerCase() === 'v') setMode('move');
         if (e.key.toLowerCase() === 'c') setMode('connect');
         if (e.key.toLowerCase() === 'd') setMode('draw');
@@ -460,7 +471,10 @@
     });
 
     window.addEventListener('keyup', (e) => {
-        if (e.code === 'Space') { isSpacePressed = false; boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; }
+        if (e.code === 'Space') { 
+            isSpacePressed = false; 
+            boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; 
+        }
     });
 
     boardView.addEventListener('wheel', (e) => {
@@ -478,6 +492,16 @@
     boardView.addEventListener('mousedown', (e) => {
         if (e.target.closest('.floating-toolbar') || e.target.closest('.modal-overlay') || e.target.closest('#lightbox-modal')) return;
         
+        // Si pulsamos Espacio, arrastramos el tablero inmediatamente sin importar dónde se haga clic
+        if (isSpacePressed) {
+            isDraggingBoard = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            boardView.style.cursor = 'grabbing';
+            e.preventDefault();
+            return;
+        }
+
         if (e.target === boardView || e.target.tagName === 'CANVAS' || e.target === container) {
             selectItem(null);
             
@@ -492,10 +516,10 @@
                     if (f && t) {
                         const fW = f.role !== undefined ? 125 : 110;
                         const tW = t.role !== undefined ? 125 : 110;
-                        const midX = ((f.x + fW) + (t.x + tW)) / 2 + 10;
-                        const midY = ((f.y + 10) + (t.y + 10)) / 2 + 20;
+                        const midX = ((f.x + fW) + (t.x + tW)) / 2;
+                        const midY = ((f.y) + (t.y)) / 2 + 15;
 
-                        if (Math.hypot(clickX - midX, clickY - midY) < 30) {
+                        if (Math.hypot(clickX - midX, clickY - midY) < 35) {
                             if (confirm("¿Cortar este hilo de investigación?")) {
                                 items.connections.splice(i, 1);
                                 drawStrings(); triggerAutoSave(); return;
@@ -505,7 +529,7 @@
                 }
             }
 
-            if (mode === 'draw' && !isSpacePressed) {
+            if (mode === 'draw') {
                 isDrawing = true;
                 const rect = container.getBoundingClientRect();
                 currentPath = [{ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }];
@@ -515,7 +539,7 @@
             isDraggingBoard = true;
             startX = e.clientX - panX;
             startY = e.clientY - panY;
-            if(isSpacePressed || mode === 'move') boardView.style.cursor = 'grabbing';
+            boardView.style.cursor = 'grabbing';
         }
     });
 
@@ -547,12 +571,16 @@
             return;
         }
 
-        if (isDraggingBoard) { panX = e.clientX - startX; panY = e.clientY - startY; updateTransform(); }
+        if (isDraggingBoard) { 
+            panX = e.clientX - startX; 
+            panY = e.clientY - startY; 
+            updateTransform(); 
+        }
     });
 
     window.addEventListener('mouseup', () => {
         if (activeItem) { activeItem.el.classList.remove('front'); activeItem = null; triggerAutoSave(); }
-        if (isDraggingBoard) { isDraggingBoard = false; if(!isSpacePressed && mode !== 'draw') boardView.style.cursor = 'default'; }
+        if (isDraggingBoard) { isDraggingBoard = false; boardView.style.cursor = isSpacePressed ? 'grab' : (mode === 'draw' ? 'crosshair' : 'default'); }
         if (isDrawing) {
             isDrawing = false;
             if (currentPath.length > 2) { items.drawings.push([...currentPath]); triggerAutoSave(); }
@@ -561,14 +589,18 @@
     });
 
     // ==========================================
-    // RENDER DOM
+    // RENDER DOM & MODO (SIN CRASHES)
     // ==========================================
     function setMode(newMode) {
         mode = newMode;
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-mode-' + newMode.charAt(0)).classList.add('active');
+        const btnId = modeBtnMap[newMode];
+        if (btnId && document.getElementById(btnId)) {
+            document.getElementById(btnId).classList.add('active');
+        }
         boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default';
-        connectingSource = null; renderDOM();
+        connectingSource = null; 
+        renderDOM();
     }
 
     function selectItem(id) {
@@ -603,28 +635,44 @@
 
             let imgHtml = c.classified 
                 ? `<div class="classified-silhouette"><div class="classified-stamp">TOP SECRET</div><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>`
-                : (c.img ? `<img src="${c.img}" alt="Dossier">` : '<span>[ FOTO RETRATO - SIN IMAGEN ]</span>');
+                : `<img src="${c.img || DEFAULT_PHOTO_SVG}" alt="Dossier">`;
 
             el.innerHTML = `
                 <div class="pin-color-selector">
-                    <div class="color-dot red" onclick="setPinColor('${c.id}', 'red')"></div>
-                    <div class="color-dot blue" onclick="setPinColor('${c.id}', 'blue')"></div>
-                    <div class="color-dot yellow" onclick="setPinColor('${c.id}', 'yellow')"></div>
+                    <div class="color-dot red" data-action="color" data-color="red" title="Roja"></div>
+                    <div class="color-dot blue" data-action="color" data-color="blue" title="Azul"></div>
+                    <div class="color-dot yellow" data-action="color" data-color="yellow" title="Amarilla"></div>
                 </div>
                 <div class="card-actions">
-                    <button class="card-action-btn" onclick="toggleClassified('${c.id}')">${c.classified ? '👁️' : '🔒'}</button>
-                    <button class="card-action-btn edit" onclick="openEditCard('${c.id}')">✏️</button>
-                    <button class="card-action-btn delete" onclick="deleteCard('${c.id}')">✕</button>
+                    <button class="card-action-btn" data-action="classify" title="${c.classified ? 'Revelar' : 'Ocultar'}">${c.classified ? '👁️' : '🔒'}</button>
+                    <button class="card-action-btn edit" data-action="edit" title="Editar Ficha">✏️</button>
+                    <button class="card-action-btn delete" data-action="delete" title="Eliminar">✕</button>
                 </div>
-                <div class="pin ${c.pin || 'red'} ${isPulsing}" onclick="handlePin(event, '${c.id}')"></div>
-                <div class="individual-img-container" ${!c.classified ? `onclick="openLightbox('${c.id}')"` : ''}>${imgHtml}</div>
+                <div class="pin ${c.pin || 'red'} ${isPulsing}" data-action="pin"></div>
+                <div class="individual-img-container" data-action="img">${imgHtml}</div>
                 <div class="individual-info">
                     <h3>${displayName}</h3>
                     <div class="individual-role">${displayRole}</div>
                     <div class="individual-desc">${displayDesc}</div>
                 </div>
             `;
-            attachDrag(el, c); container.appendChild(el);
+
+            // Asignar eventos de forma limpia e infalible
+            el.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('[data-action]');
+                if (!actionBtn) return;
+                const action = actionBtn.dataset.action;
+
+                if (action === 'classify') toggleClassified(c.id);
+                else if (action === 'edit') openEditCard(c.id);
+                else if (action === 'delete') deleteCard(c.id);
+                else if (action === 'color') setPinColor(c.id, actionBtn.dataset.color);
+                else if (action === 'pin') handlePin(e, c.id);
+                else if (action === 'img' && !c.classified) openLightbox(c.id);
+            });
+
+            attachDrag(el, c); 
+            container.appendChild(el);
         });
 
         items.notes.forEach(n => {
@@ -635,13 +683,25 @@
 
             el.innerHTML = `
                 <div class="card-actions">
-                    <button class="card-action-btn edit" onclick="openEditNote('${n.id}')">✏️</button>
-                    <button class="card-action-btn delete" onclick="deleteNote('${n.id}')">✕</button>
+                    <button class="card-action-btn edit" data-action="edit" title="Editar Nota">✏️</button>
+                    <button class="card-action-btn delete" data-action="delete" title="Eliminar">✕</button>
                 </div>
-                <div class="pin ${n.pin || 'yellow'} ${isPulsing}" onclick="handlePin(event, '${n.id}')"></div>
+                <div class="pin ${n.pin || 'yellow'} ${isPulsing}" data-action="pin"></div>
                 <div style="margin-top:10px;">${escapeHTML(n.text)}</div>
             `;
-            attachDrag(el, n); container.appendChild(el);
+
+            el.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('[data-action]');
+                if (!actionBtn) return;
+                const action = actionBtn.dataset.action;
+
+                if (action === 'edit') openEditNote(n.id);
+                else if (action === 'delete') deleteNote(n.id);
+                else if (action === 'pin') handlePin(e, n.id);
+            });
+
+            attachDrag(el, n); 
+            container.appendChild(el);
         });
         
         if(selectedItemId) selectItem(selectedItemId);
@@ -650,17 +710,26 @@
     function attachDrag(el, itemData) {
         el.addEventListener('mousedown', (e) => {
             if (isSpacePressed || mode === 'draw') return;
-            if (e.target.tagName === 'BUTTON' || e.target.classList.contains('card-action-btn') || e.target.classList.contains('pin') || e.target.classList.contains('color-dot') || e.target.classList.contains('individual-img-container') || e.target.tagName === 'IMG') return;
+            if (e.target.closest('[data-action]')) return;
             
-            e.stopPropagation(); selectItem(itemData.id);
+            e.stopPropagation(); 
+            selectItem(itemData.id);
+            
             if (mode === 'move') {
                 el.classList.add('front');
-                activeItem = { item: itemData, el: el, offsetX: (e.clientX - panX) / scale - itemData.x, offsetY: (e.clientY - panY) / scale - itemData.y };
+                activeItem = { 
+                    item: itemData, 
+                    el: el, 
+                    offsetX: (e.clientX - panX) / scale - itemData.x, 
+                    offsetY: (e.clientY - panY) / scale - itemData.y 
+                };
             }
         });
     }
 
-    // Manejador de chinchetas corregido con comparaciones flexibles (==)
+    // ==========================================
+    // LÓGICA DE INTERACCIÓN
+    // ==========================================
     function handlePin(e, id) {
         e.stopPropagation();
         if (mode === 'connect') {
@@ -689,25 +758,28 @@
 
     function toggleClassified(id) {
         const card = items.cards.find(c => c.id == id);
-        if (card) { card.classified = !card.classified; renderDOM(); triggerAutoSave(); }
+        if (card) { 
+            card.classified = !card.classified; 
+            renderDOM(); 
+            triggerAutoSave(); 
+        }
     }
 
-    // Visor Lightbox Corregido para imprevistos e imágenes vacías
     function openLightbox(id) {
         const card = items.cards.find(c => c.id == id);
         if (!card || card.classified) return;
         
-        const imgSrc = (card.img && card.img.trim() !== '') 
-            ? card.img 
-            : 'https://placehold.co/600x600/111/D9A74A?text=SIN+IMAGEN';
+        const imgSrc = (card.img && card.img.trim() !== '') ? card.img : DEFAULT_PHOTO_SVG;
             
         document.getElementById('lb-img').src = imgSrc;
-        document.getElementById('lb-name').innerText = card.name || "SIN NOMBRE";
-        document.getElementById('lb-role').innerText = card.role || "SIN CARGO";
+        document.getElementById('lb-name').innerText = card.name || "SUJETO SIN NOMBRE";
+        document.getElementById('lb-role').innerText = card.role || "DOSSIER CLASIFICADO";
         document.getElementById('lightbox-modal').style.display = 'flex';
     }
 
-    function closeLightbox() { document.getElementById('lightbox-modal').style.display = 'none'; }
+    function closeLightbox() { 
+        document.getElementById('lightbox-modal').style.display = 'none'; 
+    }
 
     function deleteCard(id) {
         items.cards = items.cards.filter(c => c.id != id);
@@ -757,8 +829,8 @@
                 const tW = t.role !== undefined ? 125 : 110;
                 sCtx.strokeStyle = pinColors[f.pin || 'red'] || '#b22222';
                 sCtx.beginPath(); 
-                sCtx.moveTo(f.x + fW, f.y + 10);
-                sCtx.quadraticCurveTo((f.x + t.x)/2 + 10, (f.y + t.y)/2 + 20, t.x + tW, t.y + 10);
+                sCtx.moveTo(f.x + fW, f.y + 2);
+                sCtx.quadraticCurveTo((f.x + fW + t.x + tW)/2, (f.y + t.y)/2 + 25, t.x + tW, t.y + 2);
                 sCtx.stroke();
             }
         });
