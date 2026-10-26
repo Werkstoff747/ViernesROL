@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Los viernes, Rol - Tablero Táctico</title>
+    <title>Los viernes, Rol - Tablero Táctico v1.0.00</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,15 +48,29 @@
             max-width: 1000px; width: 100%;
             background: var(--card-bg); border: 2px solid var(--accent-gold);
             border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            position: relative;
         }
 
-        .dash-header { text-align: center; border-bottom: 1px solid var(--card-border); padding-bottom: 20px; margin-bottom: 30px; }
-        .dash-header h1 { font-family: 'Permanent Marker', cursive; font-size: 3rem; color: var(--marker-red); letter-spacing: 2px; }
+        .dash-header { text-align: center; border-bottom: 1px solid var(--card-border); padding-bottom: 20px; margin-bottom: 30px; position: relative; }
+        .dash-header h1 { font-family: 'Permanent Marker', cursive; font-size: 3rem; color: var(--marker-red); letter-spacing: 2px; display: inline-block; }
         
+        .version-badge {
+            font-size: 0.85rem;
+            background: rgba(217, 167, 74, 0.15);
+            color: var(--accent-gold);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-weight: bold;
+            border: 1px solid var(--accent-gold);
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
         .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         
         .dash-section { background: rgba(0,0,0,0.15); padding: 20px; border-radius: 8px; border: 1px solid var(--card-border); }
-        .dash-section h2 { color: var(--accent-gold); font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .dash-section h2 { color: var(--accent-gold); font-size: 1.1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         
         .btn-large {
             display: block; width: 100%; padding: 12px; margin-bottom: 10px;
@@ -68,10 +82,14 @@
         .btn-large i { width: 25px; text-align: center; margin-right: 10px; color: var(--accent-gold); }
         .btn-large:hover { border-color: var(--accent-gold); transform: translateY(-2px); }
 
-        .guide-table { width: 100%; font-size: 0.9rem; text-align: left; border-collapse: collapse; }
-        .guide-table th { color: var(--accent-gold); padding-bottom: 10px; border-bottom: 1px solid var(--card-border); }
-        .guide-table td { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .key-badge { background: var(--card-border); padding: 3px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: var(--text-main); }
+        .feature-list { list-style: none; font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+        .feature-list li { display: flex; align-items: center; gap: 8px; }
+        .feature-list i { color: #1a8c3e; font-size: 0.75rem; }
+
+        .guide-table { width: 100%; font-size: 0.85rem; text-align: left; border-collapse: collapse; }
+        .guide-table th { color: var(--accent-gold); padding-bottom: 8px; border-bottom: 1px solid var(--card-border); }
+        .guide-table td { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .key-badge { background: var(--card-border); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; color: var(--text-main); font-size: 0.8rem; }
 
         .start-btn-container { text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         
@@ -93,6 +111,7 @@
         }
         #board-view.whiteboard { background-color: #f4f6f8; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 35px 35px; }
         #board-view.drawing-mode { cursor: crosshair; }
+        #board-view.eraser-mode { cursor: cell; }
         #board-view:active { cursor: grabbing; }
 
         .board-container { position: absolute; width: 6000px; height: 6000px; transform-origin: 0 0; }
@@ -102,7 +121,7 @@
         .floating-toolbar {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(18, 24, 36, 0.95); border: 1px solid var(--accent-gold);
-            padding: 10px 20px; border-radius: 30px; display: flex; gap: 15px; align-items: center;
+            padding: 10px 20px; border-radius: 30px; display: flex; gap: 12px; align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px);
         }
         .tool-btn {
@@ -195,39 +214,49 @@
         <div class="dashboard-container">
             <div class="dash-header">
                 <span style="font-family: 'Special Elite'; color: var(--text-muted);">Los viernes, Rol present:</span>
-                <h1>EL TABLÓN</h1>
+                <br>
+                <h1>EL TABLÓN</h1> <span class="version-badge">v1.0.00</span>
             </div>
 
             <div class="dash-grid">
                 <!-- Archivos y Ajustes -->
                 <div class="dash-section">
                     <h2><i class="fa-solid fa-folder-open"></i> Gestión de Expediente</h2>
-                    <input type="text" id="op-name" value="OPERATION-STYX" style="width: 100%; padding: 10px; margin-bottom: 15px; background: var(--bg-color); color: var(--accent-gold); border: 1px solid var(--card-border); font-family: 'Special Elite';" placeholder="Nombre de la Operación">
+                    <input type="text" id="op-name" value="OPERATION-STYX" style="width: 100%; padding: 10px; margin-bottom: 12px; background: var(--bg-color); color: var(--accent-gold); border: 1px solid var(--card-border); font-family: 'Special Elite';" placeholder="Nombre de la Operación">
                     
                     <button class="btn-large" onclick="exportJSON()"><i class="fa-solid fa-file-export"></i> Exportar a JSON (Copia de seguridad)</button>
                     <button class="btn-large" onclick="document.getElementById('import-json-input').click()"><i class="fa-solid fa-file-import"></i> Importar JSON (Cargar partida)</button>
                     <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(event)">
                     
-                    <div style="margin-top: 15px;">
+                    <div style="margin-top: 12px;">
                         <label style="font-size: 0.85rem; color: var(--text-muted);">Fondo del Tablón:</label>
                         <select id="board-bg-select" style="width: 100%; padding: 8px; margin-top: 4px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--card-border);">
                             <option value="cork">Corcho Clásico</option>
                             <option value="whiteboard">Pizarra Blanca</option>
                         </select>
                     </div>
+
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> Sincronización Dual TV (Portátil / Pantalla)</li>
+                        <li><i class="fa-solid fa-check"></i> Modo Top Secret / Expedientes Clasificados</li>
+                        <li><i class="fa-solid fa-check"></i> Rotulador Rojo + Goma de Borrar Vectorial</li>
+                        <li><i class="fa-solid fa-check"></i> Visor Lightbox para fotos de alta resolución</li>
+                    </ul>
                 </div>
 
                 <!-- Guía y Atajos -->
                 <div class="dash-section">
-                    <h2><i class="fa-solid fa-circle-info"></i> Guía Rápida de Atajos</h2>
+                    <h2><i class="fa-solid fa-keyboard"></i> Guía de Atajos Rápida</h2>
                     <table class="guide-table">
                         <tr><th>Acción</th><th>Teclado / Ratón</th></tr>
-                        <tr><td>Mover Corcho</td><td><span class="key-badge">Espacio</span> + Arrastrar</td></tr>
+                        <tr><td>Mover Tablero</td><td><span class="key-badge">Espacio</span> + Arrastrar</td></tr>
                         <tr><td>Herramienta Mover</td><td><span class="key-badge">V</span></td></tr>
-                        <tr><td>Conectar/Cortar Hilo</td><td><span class="key-badge">C</span> (Clic en chincheta/hilo)</td></tr>
+                        <tr><td>Conectar/Cortar Hilo</td><td><span class="key-badge">C</span> (Clic chincheta / hilo)</td></tr>
                         <tr><td>Rotulador Rojo</td><td><span class="key-badge">D</span> + Arrastrar ratón</td></tr>
-                        <tr><td>Borrar Seleccionado</td><td><span class="key-badge">Supr</span> / <span class="key-badge">Backspace</span></td></tr>
-                        <tr><td>Zoom</td><td><span class="key-badge">Rueda Ratón</span></td></tr>
+                        <tr><td>Goma de Borrar</td><td><span class="key-badge">E</span> + Arrastrar ratón</td></tr>
+                        <tr><td>Deshacer Trazo</td><td><span class="key-badge">Ctrl + Z</span></td></tr>
+                        <tr><td>Borrar Ficha/Nota</td><td><span class="key-badge">Supr</span> / <span class="key-badge">Backspace</span></td></tr>
+                        <tr><td>Zoom In/Out</td><td><span class="key-badge">Rueda Ratón</span></td></tr>
                     </table>
                 </div>
             </div>
@@ -238,7 +267,7 @@
             </div>
         </div>
         
-        <button class="form-btn" onclick="document.body.classList.toggle('light-mode')" style="position: absolute; top: 20px; right: 20px;"><i class="fa-solid fa-moon"></i></button>
+        <button class="form-btn" onclick="document.body.classList.toggle('light-mode')" style="position: absolute; top: 20px; right: 20px;" title="Cambiar Tema Dark/Light"><i class="fa-solid fa-moon"></i></button>
     </div>
 
     <!-- VISTA 2: TABLERO INMERSIVO -->
@@ -250,6 +279,7 @@
             <button class="tool-btn active" id="btn-mode-v" onclick="setMode('move')" title="Mover Fichas (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
             <button class="tool-btn" id="btn-mode-c" onclick="setMode('connect')" title="Conectar/Cortar Hilos (C)"><i class="fa-solid fa-circle-nodes"></i></button>
             <button class="tool-btn" id="btn-mode-d" onclick="setMode('draw')" title="Rotulador (D)"><i class="fa-solid fa-pen"></i></button>
+            <button class="tool-btn" id="btn-mode-e" onclick="setMode('erase')" title="Goma de Borrar Trazos (E)"><i class="fa-solid fa-eraser"></i></button>
             <div style="width: 1px; height: 20px; background: var(--card-border); margin: 0 5px;"></div>
             <button class="tool-btn" onclick="openAddCard()" title="Nueva Ficha (+)"><i class="fa-solid fa-user-plus"></i></button>
             <button class="tool-btn" onclick="openAddNote()" title="Nueva Nota (+)"><i class="fa-solid fa-note-sticky"></i></button>
@@ -325,7 +355,6 @@
     const urlParams = new URLSearchParams(window.location.search);
     const isTVMode = urlParams.get('mode') === 'tv';
 
-    // SVG inline seguro para fotos por defecto
     const DEFAULT_PHOTO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 24 24" fill="%23D9A74A"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>`;
 
     // ==========================================
@@ -403,7 +432,7 @@
 
     let mode = 'move'; 
     let panX = 0, panY = 0, scale = 1;
-    let isSpacePressed = false, isDraggingBoard = false, isDrawing = false;
+    let isSpacePressed = false, isDraggingBoard = false, isDrawing = false, isErasing = false;
     let startX, startY;
     let activeItem = null; 
     let selectedItemId = null; 
@@ -451,13 +480,24 @@
     }
 
     // ==========================================
-    // CONTROLES DE TECLADO Y RATÓN (CORREGIDOS)
+    // CONTROLES DE TECLADO Y RATÓN
     // ==========================================
-    const modeBtnMap = { move: 'btn-mode-v', connect: 'btn-mode-c', draw: 'btn-mode-d' };
+    const modeBtnMap = { move: 'btn-mode-v', connect: 'btn-mode-c', draw: 'btn-mode-d', erase: 'btn-mode-e' };
 
     window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (boardView.style.display !== 'block') return;
+
+        // Deshacer Trazo (Ctrl + Z)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            if (items.drawings.length > 0) {
+                items.drawings.pop();
+                redrawDrawings();
+                triggerAutoSave();
+            }
+            return;
+        }
 
         if (e.code === 'Space') { 
             e.preventDefault(); 
@@ -467,13 +507,14 @@
         if (e.key.toLowerCase() === 'v') setMode('move');
         if (e.key.toLowerCase() === 'c') setMode('connect');
         if (e.key.toLowerCase() === 'd') setMode('draw');
+        if (e.key.toLowerCase() === 'e') setMode('erase');
         if (e.key === 'Delete' || e.key === 'Backspace') deleteSelectedItem();
     });
 
     window.addEventListener('keyup', (e) => {
         if (e.code === 'Space') { 
             isSpacePressed = false; 
-            boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; 
+            boardView.style.cursor = mode === 'draw' ? 'crosshair' : (mode === 'erase' ? 'cell' : 'default'); 
         }
     });
 
@@ -492,7 +533,6 @@
     boardView.addEventListener('mousedown', (e) => {
         if (e.target.closest('.floating-toolbar') || e.target.closest('.modal-overlay') || e.target.closest('#lightbox-modal')) return;
         
-        // Si pulsamos Espacio, arrastramos el tablero inmediatamente sin importar dónde se haga clic
         if (isSpacePressed) {
             isDraggingBoard = true;
             startX = e.clientX - panX;
@@ -505,6 +545,7 @@
         if (e.target === boardView || e.target.tagName === 'CANVAS' || e.target === container) {
             selectItem(null);
             
+            // Cortar Hilos
             if (mode === 'connect') {
                 const rect = container.getBoundingClientRect();
                 const clickX = (e.clientX - rect.left) / scale;
@@ -529,10 +570,18 @@
                 }
             }
 
+            // Dibujar
             if (mode === 'draw') {
                 isDrawing = true;
                 const rect = container.getBoundingClientRect();
                 currentPath = [{ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }];
+                return;
+            }
+
+            // Borrar Trazos
+            if (mode === 'erase') {
+                isErasing = true;
+                eraseStrokeAtPoint(e);
                 return;
             }
             
@@ -571,6 +620,11 @@
             return;
         }
 
+        if (isErasing) {
+            eraseStrokeAtPoint(e);
+            return;
+        }
+
         if (isDraggingBoard) { 
             panX = e.clientX - startX; 
             panY = e.clientY - startY; 
@@ -580,16 +634,57 @@
 
     window.addEventListener('mouseup', () => {
         if (activeItem) { activeItem.el.classList.remove('front'); activeItem = null; triggerAutoSave(); }
-        if (isDraggingBoard) { isDraggingBoard = false; boardView.style.cursor = isSpacePressed ? 'grab' : (mode === 'draw' ? 'crosshair' : 'default'); }
+        if (isDraggingBoard) { isDraggingBoard = false; boardView.style.cursor = isSpacePressed ? 'grab' : (mode === 'draw' ? 'crosshair' : (mode === 'erase' ? 'cell' : 'default')); }
         if (isDrawing) {
             isDrawing = false;
             if (currentPath.length > 2) { items.drawings.push([...currentPath]); triggerAutoSave(); }
             currentPath = []; redrawDrawings();
         }
+        if (isErasing) { isErasing = false; }
     });
 
     // ==========================================
-    // RENDER DOM & MODO (SIN CRASHES)
+    // BORRADO VECTORIAL
+    // ==========================================
+    function eraseStrokeAtPoint(e) {
+        const rect = container.getBoundingClientRect();
+        const mouseP = { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale };
+        const ERASER_RADIUS = 20;
+        let erasedAny = false;
+
+        for (let i = items.drawings.length - 1; i >= 0; i--) {
+            const path = items.drawings[i];
+            let hit = false;
+            for (let j = 0; j < path.length - 1; j++) {
+                if (distToSegment(mouseP, path[j], path[j+1]) < ERASER_RADIUS) {
+                    hit = true;
+                    break;
+                }
+            }
+            if (hit) {
+                items.drawings.splice(i, 1);
+                erasedAny = true;
+            }
+        }
+
+        if (erasedAny) {
+            redrawDrawings();
+            triggerAutoSave();
+        }
+    }
+
+    function distToSegment(p, v, w) {
+        function sqr(x) { return x * x; }
+        function dist2(v, w) { return sqr(v.x - w.x) + sqr(v.y - w.y); }
+        const l2 = dist2(v, w);
+        if (l2 === 0) return Math.sqrt(dist2(p, v));
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        return Math.sqrt(dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) }));
+    }
+
+    // ==========================================
+    // RENDER DOM & MODO
     // ==========================================
     function setMode(newMode) {
         mode = newMode;
@@ -598,7 +693,7 @@
         if (btnId && document.getElementById(btnId)) {
             document.getElementById(btnId).classList.add('active');
         }
-        boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default';
+        boardView.style.cursor = mode === 'draw' ? 'crosshair' : (mode === 'erase' ? 'cell' : 'default');
         connectingSource = null; 
         renderDOM();
     }
@@ -657,7 +752,6 @@
                 </div>
             `;
 
-            // Asignar eventos de forma limpia e infalible
             el.addEventListener('click', (e) => {
                 const actionBtn = e.target.closest('[data-action]');
                 if (!actionBtn) return;
@@ -709,7 +803,7 @@
 
     function attachDrag(el, itemData) {
         el.addEventListener('mousedown', (e) => {
-            if (isSpacePressed || mode === 'draw') return;
+            if (isSpacePressed || mode === 'draw' || mode === 'erase') return;
             if (e.target.closest('[data-action]')) return;
             
             e.stopPropagation(); 
