@@ -161,7 +161,7 @@
         /* Contenedor de la imagen adaptado a la proporción 1000x333 (Panorámica) */
         .card-cover {
             width: 100%;
-            height: 120px; /* Altura ideal para tarjeta manteniendo proporción panorámica */
+            height: 120px;
             background-color: #0f131a;
             position: relative;
             overflow: hidden;
@@ -182,7 +182,6 @@
             flex-grow: 1;
         }
 
-        /* Título del juego con fuente limpia Inter (Sin Cinzel) */
         .card-game-title {
             font-family: 'Inter', sans-serif;
             font-weight: 700;
@@ -191,9 +190,11 @@
         }
 
         .card-adventure {
-            font-size: 0.88rem;
-            color: var(--text-muted);
-            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-top: -2px;
+            margin-bottom: 4px;
         }
 
         .card-date {
@@ -398,11 +399,6 @@
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?gid=432079409&single=true&output=csv';
 
     window.addEventListener('DOMContentLoaded', () => {
-        if (sessionStorage.getItem('viernes_rol_auth') !== 'true') {
-            window.location.href = '../index.html';
-            return;
-        }
-
         initTheme();
         cargarCalendarioDesdeSheet();
 
@@ -450,17 +446,15 @@
                 const sistema = columns[3] || '';
                 const dj = columns[4] || '';
                 const ausencias = columns[5] || '';
-                const imagen = (columns[6] || '').trim(); // Columna G: Nombre de la imagen
+                const imagen = (columns[6] || '').trim();
 
                 const juegoUpper = juegoOriginal.toUpperCase();
                 const aventuraUpper = aventuraOriginal.toUpperCase();
 
-                // Filtrar filas vacías o de plantilla
                 if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || aventuraUpper === 'EN BLANCO') {
                     return;
                 }
 
-                // Evaluar si la fecha es pasada o futura
                 let esPasada = false;
                 if (fechaStr) {
                     const partesFecha = fechaStr.split('/');
@@ -480,8 +474,7 @@
                 const tituloMostrar = esPendiente ? '... que partida jugamos' : juegoOriginal;
                 const claseTarjeta = esPendiente ? 'calendar-card pending' : (esPasada ? 'calendar-card past' : 'calendar-card');
 
-                // CONSTRUCCIÓN DE LA RUTA DE LA IMAGEN:
-                const imgSrc = imagen ? `imagenes/${imagen}` : '';
+                const imgSrc = imagen ? `../imagenes/${imagen}` : '';
                 const imgHtml = imgSrc ? `<div class="card-cover"><img src="${imgSrc}" alt="${tituloMostrar}" onerror="this.parentElement.style.display='none'"></div>` : '';
 
                 const sistemaHtml = (!esPendiente && sistema && sistema.toUpperCase() !== 'SISTEMA') ? `<span class="meta-tag"><i class="fa-solid fa-dice-d20" style="margin-right: 4px;"></i>${sistema}</span>` : '';
@@ -519,7 +512,7 @@
             if (contadorProximas === 0) {
                 gridContainer.innerHTML = '<p style="color: var(--text-muted); grid-column: 1 / -1;">No hay próximas partidas visibles para las fechas actuales.</p>';
             } else {
-                gridContainer.innerHTML = htmlProximas; // <-- Corregido para volcar el contenido correcto
+                gridContainer.innerHTML = htmlProximas;
             }
 
             if (contadorHistorico > 0) {
@@ -555,7 +548,7 @@
         } else {
             document.body.classList.remove('light-mode');
         }
-        actualizarIconoTema(); // <-- Corregido el error tipográfico de asignación
+        actualizarIconoTema();
     }
 
     themeToggleBtns.forEach(btn => {
