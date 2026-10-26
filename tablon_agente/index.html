@@ -3,22 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Los viernes, Rol - Tablón del Agente</title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
+    <title>Los viernes, Rol - Tablero Táctico</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500;600;700&family=Permanent+Marker&family=Special+Elite&display=swap" rel="stylesheet">
-
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- SDK de Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <style>
         :root {
@@ -28,8 +19,6 @@
             --text-main: #E2E8F0;
             --text-muted: #94A3B8;
             --accent-gold: #D9A74A;
-            --accent-gold-hover: #e6b85c;
-            --header-border: #D9A74A;
             --marker-red: #E63946;
             --polaroid-bg: #e6e2d3;
         }
@@ -41,710 +30,618 @@
             --text-main: #2b2628;
             --text-muted: #6b6366;
             --accent-gold: #9c7326;
-            --accent-gold-hover: #7d5b1b;
-            --header-border: #9c7326;
             --marker-red: #C52233;
             --polaroid-bg: #f4efe1;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); overflow: hidden; transition: background-color 0.3s; }
+
+        /* =========================================================
+           VISTA 1: CENTRO DE CONTROL (ADMIN DASHBOARD)
+           ========================================================= */
+        #admin-view {
+            width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow-y: auto; padding: 40px;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 15px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            overflow-x: hidden;
+        .dashboard-container {
+            max-width: 1000px; width: 100%;
+            background: var(--card-bg); border: 2px solid var(--accent-gold);
+            border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        /* Cabecera ocultable en modo pantalla completa */
-        header {
-            padding: 15px 20px;
-            border-bottom: 2px solid var(--header-border);
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .header-dice {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-        }
-
-        .header-text {
+        .dash-header { text-align: center; border-bottom: 1px solid var(--card-border); padding-bottom: 20px; margin-bottom: 30px; }
+        .dash-header h1 { font-family: 'Permanent Marker', cursive; font-size: 3rem; color: var(--marker-red); letter-spacing: 2px; }
+        
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        
+        .dash-section { background: rgba(0,0,0,0.15); padding: 20px; border-radius: 8px; border: 1px solid var(--card-border); }
+        .dash-section h2 { color: var(--accent-gold); font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        
+        .btn-large {
+            display: block; width: 100%; padding: 12px; margin-bottom: 10px;
+            background: var(--bg-color); color: var(--text-main);
+            border: 1px solid var(--card-border); border-radius: 6px;
+            font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s;
             text-align: left;
         }
+        .btn-large i { width: 25px; text-align: center; margin-right: 10px; color: var(--accent-gold); }
+        .btn-large:hover { border-color: var(--accent-gold); transform: translateY(-2px); }
 
-        .header-subtitle-top {
-            font-family: 'Permanent Marker', cursive;
-            font-size: 0.9rem;
-            color: var(--text-main);
-            letter-spacing: 1.5px;
-            display: block;
+        .guide-table { width: 100%; font-size: 0.9rem; text-align: left; border-collapse: collapse; }
+        .guide-table th { color: var(--accent-gold); padding-bottom: 10px; border-bottom: 1px solid var(--card-border); }
+        .guide-table td { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .key-badge { background: var(--card-border); padding: 3px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: var(--text-main); }
+
+        .start-btn-container { text-align: center; margin-top: 40px; }
+        .start-btn {
+            background: var(--marker-red); color: white; border: none;
+            padding: 15px 40px; font-size: 1.5rem; font-weight: bold; font-family: 'Special Elite', monospace;
+            border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 0 #990000; letter-spacing: 2px;
+        }
+        .start-btn:hover { transform: translateY(2px); box-shadow: 0 4px 0 #990000; }
+        .start-btn:active { transform: translateY(6px); box-shadow: none; }
+
+        /* =========================================================
+           VISTA 2: TABLÓN INMERSIVO (PANTALLA COMPLETA)
+           ========================================================= */
+        #board-view {
+            display: none; position: fixed; inset: 0; width: 100vw; height: 100vh;
+            background-color: #b8865c; overflow: hidden; cursor: grab;
+        }
+        #board-view.whiteboard { background-color: #f4f6f8; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 35px 35px; }
+        #board-view.drawing-mode { cursor: crosshair; }
+        #board-view:active { cursor: grabbing; }
+
+        .board-container { position: absolute; width: 6000px; height: 6000px; transform-origin: 0 0; }
+        #string-canvas, #drawing-canvas { position: absolute; top: 0; left: 0; width: 6000px; height: 6000px; pointer-events: none; z-index: 10; }
+        #drawing-canvas { z-index: 15; }
+
+        /* Barra Flotante Minimalista */
+        .floating-toolbar {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(18, 24, 36, 0.95); border: 1px solid var(--accent-gold);
+            padding: 10px 20px; border-radius: 30px; display: flex; gap: 15px; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px);
+        }
+        .tool-btn {
+            background: transparent; color: var(--text-main); border: none; font-size: 1.1rem;
+            cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; width: 35px; height: 35px;
+        }
+        .tool-btn.active, .tool-btn:hover { background: var(--accent-gold); color: #121824; }
+        
+        .autosave-toast {
+            position: absolute; top: 25px; right: 25px; color: var(--accent-gold);
+            font-family: 'Special Elite', monospace; font-size: 0.9rem; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s;
         }
 
-        .header-title {
-            font-family: 'Permanent Marker', cursive;
-            font-size: 2.2rem;
-            color: var(--marker-red);
-            line-height: 1;
-            letter-spacing: 2px;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
-            margin: 2px 0;
-        }
+        /* Elementos del Tablero (Fichas, Pines, Notas) */
+        .individual-card { position: absolute; width: 250px; background: var(--polaroid-bg); padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); border-radius: 2px; z-index: 20; border: 1px solid #b5aca0; user-select: none; transition: box-shadow 0.2s; }
+        .individual-card.front { z-index: 100; box-shadow: 0 20px 40px rgba(0,0,0,0.9); }
+        
+        .note-card { position: absolute; width: 220px; min-height: 160px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); border-radius: 2px; z-index: 20; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.2; user-select: none; }
+        .note-card.front { z-index: 100; box-shadow: 0 20px 40px rgba(0,0,0,0.9); }
+        .note-card.yellow { background: #fff7b1; color: #222; }
+        .note-card.pink { background: #ffd1dc; color: #222; }
+        .note-card.blue { background: #cce5ff; color: #222; }
 
-        /* Contenedor del Tablero Táctico */
-        .board-wrapper {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            transition: all 0.3s ease;
-        }
-
-        .toolbar-board {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--card-border);
-        }
-
-        .toolbar-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .toolbar-btn {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            border: 1px solid var(--card-border);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            text-transform: uppercase;
-        }
-
-        .toolbar-btn:hover {
-            background-color: var(--accent-gold);
-            color: var(--bg-color);
-            border-color: var(--accent-gold);
-        }
-
-        .toolbar-input {
-            background-color: var(--bg-color);
-            color: var(--accent-gold);
-            border: 1px solid var(--card-border);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-family: 'Special Elite', monospace;
-            font-size: 0.8rem;
-            outline: none;
-            width: 140px;
-        }
-
-        /* Tablero Interactivo Dinámico */
-        #board {
-            position: relative;
-            width: 100%;
-            flex-grow: 1;
-            min-height: 70vh;
-            overflow: hidden;
-            cursor: grab;
-            border-radius: 8px;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
-            transition: background 0.3s ease;
-        }
-
-        #board.drawing-mode {
-            cursor: crosshair !important;
-        }
-
-        #board:active {
-            cursor: grabbing;
-        }
-
-        #board.cork {
-            background-color: #b8865c;
-            background-image: none;
-        }
-
-        #board.whiteboard {
-            background-color: #f4f6f8;
-            background-image: 
-                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 35px 35px;
-        }
-
-        .board-container {
-            position: absolute;
-            width: 6000px;
-            height: 6000px;
-            transform-origin: 0 0;
-        }
-
-        #string-canvas, #drawing-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 6000px;
-            height: 6000px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        #drawing-canvas {
-            z-index: 15;
-        }
-
-        /* Fichas Polaroid */
-        .individual-card {
-            position: absolute;
-            width: 250px;
-            background: var(--polaroid-bg);
-            color: #1f2937;
-            padding: 10px 10px 15px 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            border-radius: 2px;
-            z-index: 20;
-            border: 1px solid #b5aca0;
-            user-select: none;
-        }
-
-        .note-card {
-            position: absolute;
-            width: 220px;
-            min-height: 160px;
-            padding: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            border-radius: 2px;
-            z-index: 20;
-            font-family: 'Caveat', cursive, monospace;
-            font-size: 20px;
-            line-height: 1.3;
-            user-select: none;
-        }
-
-        .note-card.yellow { background: #fff7b1; color: #222; border-bottom: 3px solid #e6dc85; }
-        .note-card.pink { background: #ffd1dc; color: #222; border-bottom: 3px solid #e2b0bc; }
-        .note-card.green { background: #d4edbc; color: #222; border-bottom: 3px solid #b2cc99; }
-        .note-card.blue { background: #cce5ff; color: #222; border-bottom: 3px solid #a8c7e6; }
-
-        .pin {
-            position: absolute;
-            top: -9px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 2px 2px 3px rgba(255,255,255,0.7);
-            z-index: 30;
-            cursor: pointer;
-        }
+        .pin { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 2px 2px 3px rgba(255,255,255,0.7); z-index: 30; cursor: pointer; transition: transform 0.1s; }
+        .pin:hover { transform: translateX(-50%) scale(1.3); }
         .pin.red { background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000); }
         .pin.blue { background: radial-gradient(circle at 30% 30%, #4d94ff, #002266); }
         .pin.yellow { background: radial-gradient(circle at 30% 30%, #ffea4d, #998800); }
 
-        .card-actions {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            display: flex;
-            gap: 4px;
-            z-index: 35;
-        }
+        .individual-img-container { width: 100%; height: 160px; background: #111; overflow: hidden; border: 1px solid #555; margin-bottom: 8px; cursor: pointer; }
+        .individual-img-container img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.4) contrast(1.2); }
+        .individual-info h3 { font-size: 14px; font-weight: bold; color: #111; border-bottom: 1px dashed #999; padding-bottom: 3px; margin-bottom: 4px; }
+        .individual-role { font-size: 10px; color: #900; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+        
+        .selected-glow { box-shadow: 0 0 0 3px var(--marker-red), 0 10px 25px rgba(0,0,0,0.6) !important; }
 
-        .card-action-btn {
-            background: #142218;
-            color: #33ff66;
-            border: 1px solid #1a8c3e;
-            width: 20px;
-            height: 20px;
-            font-size: 10px;
-            cursor: pointer;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .card-action-btn.delete { background: #800000; color: #fff; border-color: #500; }
-
-        .individual-img-container {
-            width: 100%;
-            height: 160px;
-            background: #111;
-            overflow: hidden;
-            border: 1px solid #555;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-size: 10px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .individual-img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(0.4) contrast(1.2);
-        }
-
-        .individual-info h3 {
-            margin: 0 0 4px 0;
-            font-size: 13px;
-            font-weight: bold;
-            color: #111;
-            border-bottom: 1px dashed #999;
-            padding-bottom: 3px;
-        }
-
-        .individual-role {
-            font-size: 10px;
-            color: #900;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .individual-desc {
-            font-size: 9px;
-            color: #222;
-            line-height: 1.2;
-            max-height: 40px;
-            overflow: hidden;
-        }
-
-        /* MODO PANTALLA COMPLETA ACTIVADO */
-        body.fullscreen-mode header,
-        body.fullscreen-mode footer {
-            display: none !important;
-        }
-        body.fullscreen-mode .board-wrapper {
-            position: fixed;
-            inset: 10px;
-            z-index: 9990;
-            margin: 0;
-            padding: 12px;
-            height: calc(100vh - 20px) !important;
-        }
-        body.fullscreen-mode #board {
-            min-height: calc(100vh - 100px);
-        }
-
-        /* Modales y utilidades */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 5000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .form-content {
-            background: var(--card-bg);
-            border: 2px solid var(--accent-gold);
-            padding: 20px;
-            width: 400px;
-            max-width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            color: var(--text-main);
-            border-radius: 8px;
-            text-align: left;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .form-group label {
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: bold;
-            color: var(--text-muted);
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            background: var(--bg-color);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 7px;
-            font-size: 11px;
-            border-radius: 4px;
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 5px;
-        }
-
-        /* Botones flotantes */
-        .floating-btn-container {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 9999;
-        }
-
-        .floating-action-btn, .scroll-top-btn, .home-floating-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            border: 2px solid var(--card-border);
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .floating-action-btn:hover, .scroll-top-btn:hover, .home-floating-btn:hover {
-            background-color: var(--accent-gold);
-            color: var(--bg-color);
-            border-color: var(--accent-gold);
-            transform: scale(1.1);
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--card-border);
-            margin-top: 10px;
-        }
+        /* Modales Generales */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+        .form-content { background: var(--card-bg); border: 2px solid var(--accent-gold); padding: 25px; width: 400px; max-width: 100%; display: flex; flex-direction: column; gap: 12px; border-radius: 8px; }
+        .form-content input, .form-content textarea, .form-content select { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-main); padding: 8px; border-radius: 4px; outline: none; }
+        .form-content input:focus, .form-content textarea:focus { border-color: var(--accent-gold); }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .form-btn { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--card-border); padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .form-btn.primary { background: var(--accent-gold); color: #000; border: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <div class="header-content">
-                <img src="../imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
-                <div class="header-text">
-                    <span class="header-subtitle-top">Expedientes y notas del</span>
-                    <h1 class="header-title">TABLÓN</h1>
-                </div>
-            </div>
-        </header>
-
-        <!-- TABLERO TÁCTICO -->
-        <main class="board-wrapper">
-            <div class="toolbar-board">
-                <div class="toolbar-group">
-                    <input type="text" id="op-name" value="OPERATION-STYX" class="toolbar-input" title="Nombre de Operación">
-                    <button onclick="loadOperation()" class="toolbar-btn"><i class="fa-solid fa-folder-open"></i> Cargar</button>
-                    <button onclick="saveOperation()" class="toolbar-btn"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
-                </div>
-                
-                <div class="toolbar-group">
-                    <select id="board-bg-select" onchange="changeBackground(this.value)" class="toolbar-input" style="width: 105px;">
-                        <option value="cork">Corcho</option>
-                        <option value="whiteboard">Pizarra</option>
-                    </select>
-                    <input type="text" id="search-input" placeholder="🔍 Buscar..." oninput="filterBoard(this.value)" class="toolbar-input" style="width: 95px;">
-                    <button onclick="toggleMode()" id="btnMode" class="toolbar-btn"><i class="fa-solid fa-hand"></i> <span id="mode-name">Mover</span></button>
-                </div>
-
-                <div class="toolbar-group">
-                    <button onclick="addNewCard()" class="toolbar-btn"><i class="fa-solid fa-user-plus"></i> Ficha</button>
-                    <button onclick="addNewNote()" class="toolbar-btn"><i class="fa-solid fa-note-sticky"></i> Nota</button>
-                    <!-- NUEVO BOTÓN DE PANTALLA COMPLETA INMERSIVA -->
-                    <button onclick="toggleFullScreenMode()" id="fullscreenBtn" class="toolbar-btn" title="Pantalla completa"><i class="fa-solid fa-expand"></i></button>
-                    <button onclick="clearBoardData()" class="toolbar-btn" title="Limpiar"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
+    <!-- VISTA 1: ADMIN DASHBOARD -->
+    <div id="admin-view">
+        <div class="dashboard-container">
+            <div class="dash-header">
+                <span style="font-family: 'Special Elite'; color: var(--text-muted);">Los viernes, Rol present:</span>
+                <h1>EL TABLÓN</h1>
             </div>
 
-            <div id="board" class="cork">
-                <div class="board-container" id="board-container">
-                    <canvas id="string-canvas" width="6000" height="6000"></canvas>
-                    <canvas id="drawing-canvas" width="6000" height="6000"></canvas>
+            <div class="dash-grid">
+                <!-- Archivos y Ajustes -->
+                <div class="dash-section">
+                    <h2><i class="fa-solid fa-folder-open"></i> Gestión de Expediente</h2>
+                    <input type="text" id="op-name" value="OPERATION-STYX" style="width: 100%; padding: 10px; margin-bottom: 15px; background: var(--bg-color); color: var(--accent-gold); border: 1px solid var(--card-border); font-family: 'Special Elite';" placeholder="Nombre de la Operación">
+                    
+                    <button class="btn-large" onclick="exportJSON()"><i class="fa-solid fa-file-export"></i> Exportar a JSON (Copia de seguridad)</button>
+                    <button class="btn-large" onclick="document.getElementById('import-json-input').click()"><i class="fa-solid fa-file-import"></i> Importar JSON (Cargar partida)</button>
+                    <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="importJSON(event)">
+                    
+                    <div style="margin-top: 20px;">
+                        <label style="font-size: 0.9rem; color: var(--text-muted);">Fondo del Tablón:</label>
+                        <select id="board-bg-select" style="width: 100%; padding: 10px; margin-top: 5px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--card-border);">
+                            <option value="cork">Corcho Clásico</option>
+                            <option value="whiteboard">Pizarra Blanca</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Guía y Atajos -->
+                <div class="dash-section">
+                    <h2><i class="fa-solid fa-circle-info"></i> Guía Rápida de Atajos</h2>
+                    <table class="guide-table">
+                        <tr><th>Acción</th><th>Teclado / Ratón</th></tr>
+                        <tr><td>Mover Corcho</td><td><span class="key-badge">Espacio (Mantener)</span> + Arrastrar</td></tr>
+                        <tr><td>Herramienta Mover</td><td><span class="key-badge">V</span></td></tr>
+                        <tr><td>Conectar Hilos</td><td><span class="key-badge">C</span> (Clic en 2 chinchetas)</td></tr>
+                        <tr><td>Rotulador Rojo</td><td><span class="key-badge">D</span> + Arrastrar ratón</td></tr>
+                        <tr><td>Borrar Seleccionado</td><td><span class="key-badge">Supr</span> (Selecciona una ficha)</td></tr>
+                        <tr><td>Zoom</td><td><span class="key-badge">Rueda Ratón</span></td></tr>
+                        <tr><td>Salir del Tablero</td><td><span class="key-badge">ESC</span></td></tr>
+                    </table>
                 </div>
             </div>
-        </main>
 
-        <footer>
-            Los viernes, Rol &mdash; Partidas y Aventuras Presenciales
-        </footer>
+            <div class="start-btn-container">
+                <button class="start-btn" onclick="enterBoard()">INICIAR OPERACIÓN</button>
+                <p style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">Recomendado conectar a Pantalla Secundaria / TV</p>
+            </div>
+        </div>
+        
+        <button class="form-btn" onclick="document.body.classList.toggle('light-mode')" style="position: absolute; top: 20px; right: 20px;"><i class="fa-solid fa-moon"></i></button>
     </div>
 
-    <!-- Modales -->
-    <div id="form-modal" class="modal-overlay" onclick="if(event.target === this) closeFormModal()">
+    <!-- VISTA 2: TABLERO INMERSIVO (PANTALLA COMPLETA) -->
+    <div id="board-view" class="cork">
+        <div class="autosave-toast" id="autosave-toast"><i class="fa-solid fa-floppy-disk"></i> Autoguardado...</div>
+        
+        <!-- Barra de herramientas flotante (Sólo visible en el tablero) -->
+        <div class="floating-toolbar">
+            <button class="tool-btn active" id="btn-mode-v" onclick="setMode('move')" title="Mover Fichas (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
+            <button class="tool-btn" id="btn-mode-c" onclick="setMode('connect')" title="Conectar Hilos (C)"><i class="fa-solid fa-circle-nodes"></i></button>
+            <button class="tool-btn" id="btn-mode-d" onclick="setMode('draw')" title="Rotulador (D)"><i class="fa-solid fa-pen"></i></button>
+            <div style="width: 1px; height: 20px; background: var(--card-border); margin: 0 5px;"></div>
+            <button class="tool-btn" onclick="openAddCard()" title="Nueva Ficha (+)"><i class="fa-solid fa-user-plus"></i></button>
+            <button class="tool-btn" onclick="openAddNote()" title="Nueva Nota (+)"><i class="fa-solid fa-note-sticky"></i></button>
+            <div style="width: 1px; height: 20px; background: var(--card-border); margin: 0 5px;"></div>
+            <button class="tool-btn" onclick="exitBoard()" style="color: var(--marker-red);" title="Salir a Administración (ESC)"><i class="fa-solid fa-power-off"></i></button>
+        </div>
+
+        <div class="board-container" id="board-container">
+            <canvas id="string-canvas" width="6000" height="6000"></canvas>
+            <canvas id="drawing-canvas" width="6000" height="6000"></canvas>
+        </div>
+    </div>
+
+    <!-- MODALES DE CREACIÓN (Para el Tablero) -->
+    <div id="modal-card" class="modal-overlay" onclick="if(event.target === this) this.style.display='none'">
         <div class="form-content">
-            <h2 id="form-modal-title" style="color:var(--accent-gold); font-size:13px; font-family:'Special Elite';">NUEVO EXPEDIENTE</h2>
-            <input type="hidden" id="form-card-id">
-            <div class="form-group"><label>URL Imagen:</label><input type="text" id="form-img" placeholder="https://..."></div>
-            <div class="form-group"><label>Nombre:</label><input type="text" id="form-name" placeholder="Nombre..."></div>
-            <div class="form-group"><label>Cargo:</label><input type="text" id="form-role" placeholder="Rol..."></div>
-            <div class="form-group"><label>Notas:</label><textarea id="form-desc" style="height: 50px;"></textarea></div>
+            <h2 style="color:var(--accent-gold); font-family:'Special Elite'; font-size:1.2rem; margin-bottom:10px;">EXPEDIENTE CLASIFICADO</h2>
+            <input type="text" id="fc-img" placeholder="URL Foto (https://...)">
+            <input type="text" id="fc-name" placeholder="Nombre completo">
+            <input type="text" id="fc-role" placeholder="Cargo / Estatus">
+            <textarea id="fc-desc" placeholder="Notas de inteligencia..." style="height: 60px;"></textarea>
             <div class="form-actions">
-                <button type="button" onclick="closeFormModal()" class="toolbar-btn">Cancelar</button>
-                <button type="button" onclick="submitCardForm()" class="toolbar-btn" style="background-color: var(--accent-gold); color: var(--bg-color);">Guardar</button>
+                <button type="button" class="form-btn" onclick="document.getElementById('modal-card').style.display='none'">Cancelar</button>
+                <button type="button" class="form-btn primary" onclick="submitCard()">Imprimir Dossier</button>
             </div>
         </div>
     </div>
 
-    <!-- BOTONES FLOTANTES -->
-    <div class="floating-btn-container">
-        <a href="../index.html" class="home-floating-btn" title="Volver al inicio"><i class="fa-solid fa-house"></i></a>
-        <button class="floating-action-btn theme-toggle-btn" title="Cambiar modo claro/oscuro"><i class="fa-solid fa-moon"></i></button>
+    <div id="modal-note" class="modal-overlay" onclick="if(event.target === this) this.style.display='none'">
+        <div class="form-content">
+            <h2 style="color:var(--accent-gold); font-family:'Special Elite'; font-size:1.2rem; margin-bottom:10px;">NOTA POST-IT</h2>
+            <select id="fn-color">
+                <option value="yellow">Amarillo Clásico</option>
+                <option value="pink">Rosa Alerta</option>
+                <option value="blue">Azul Vínculo</option>
+            </select>
+            <textarea id="fn-text" placeholder="Escribe aquí..." style="height: 100px; font-family:'Caveat'; font-size:20px;"></textarea>
+            <div class="form-actions">
+                <button type="button" class="form-btn" onclick="document.getElementById('modal-note').style.display='none'">Cancelar</button>
+                <button type="button" class="form-btn primary" onclick="submitNote()">Pegar Nota</button>
+            </div>
+        </div>
     </div>
 
 <script>
-    window.addEventListener('DOMContentLoaded', () => {
-        if (sessionStorage.getItem('viernes_rol_auth') !== 'true') {
-            window.location.href = '../index.html';
-            return;
-        }
-        initTheme();
-        initBoard();
-    });
+    // ==========================================
+    // SISTEMA DE DATOS Y AUTOGUARDADO
+    // ==========================================
+    let items = { cards: [], notes: [], connections: [], drawings: [] };
+    let currentOp = 'OPERATION-STYX';
+    let saveTimeout;
 
-    const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
-    function initTheme() {
-        if (localStorage.getItem('viernes-rol-theme') === 'light') {
-            document.body.classList.add('light-mode');
-            themeToggleBtns.forEach(b => b.innerHTML = '<i class="fa-regular fa-sun"></i>');
-        }
-    }
-    themeToggleBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.body.classList.toggle("light-mode");
-            const isLight = document.body.classList.contains("light-mode");
-            localStorage.setItem('viernes-rol-theme', isLight ? 'light' : 'dark');
-            btn.innerHTML = isLight ? '<i class="fa-regular fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-        });
-    });
-
-    // Función para alternar el modo pantalla completa inmersiva
-    function toggleFullScreenMode() {
-        document.body.classList.toggle('fullscreen-mode');
-        const isFull = document.body.classList.contains('fullscreen-mode');
-        document.getElementById('fullscreenBtn').innerHTML = isFull ? '<i class="fa-solid fa-compress"></i>' : '<i class="fa-solid fa-expand"></i>';
-        setTimeout(() => { redrawDrawings(); drawStrings(); }, 300);
+    function triggerAutoSave() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            currentOp = document.getElementById('op-name').value || 'STYX';
+            items.bg = document.getElementById('board-bg-select').value;
+            localStorage.setItem('delta_green_op_' + currentOp, JSON.stringify(items));
+            
+            const toast = document.getElementById('autosave-toast');
+            toast.style.opacity = 1;
+            setTimeout(() => toast.style.opacity = 0, 1500);
+        }, 1000); // Guarda 1 segundo después de dejar de interactuar
     }
 
-    let individuals = [], notes = [], connections = [], drawings = [], currentBg = 'cork', mode = 'move', connectingSource = null;
-    let panX = 150, panY = 100, scale = 1, isPanning = false, startPanX, startPanY, isDrawing = false, currentPath = [];
-    const board = document.getElementById('board'), container = document.getElementById('board-container'), drawingCanvas = document.getElementById('drawing-canvas');
+    function loadData() {
+        currentOp = document.getElementById('op-name').value || 'STYX';
+        const saved = localStorage.getItem('delta_green_op_' + currentOp);
+        if (saved) {
+            items = JSON.parse(saved);
+            document.getElementById('board-bg-select').value = items.bg || 'cork';
+        } else {
+            // Datos por defecto si es nueva
+            items = {
+                cards: [{ id: 'c1', name: "Dr. Victor March", role: "MÉDICO FORENSE", desc: "Fallecido en extrañas circunstancias.", img: "", x: 200, y: 150, pin: "red" }],
+                notes: [{ id: 'n1', text: "No confíes en nadie de Omaha.", color: "yellow", x: 250, y: 400, pin: "yellow" }],
+                connections: [{ from: 'c1', to: 'n1' }],
+                drawings: [], bg: 'cork'
+            };
+        }
+    }
 
+    // ==========================================
+    // NAVEGACIÓN Y MOTOR DEL TABLERO
+    // ==========================================
+    const adminView = document.getElementById('admin-view');
+    const boardView = document.getElementById('board-view');
+    const container = document.getElementById('board-container');
+    const sCanvas = document.getElementById('string-canvas');
+    const dCanvas = document.getElementById('drawing-canvas');
+    const sCtx = sCanvas.getContext('2d');
+    const dCtx = dCanvas.getContext('2d');
+
+    let mode = 'move'; // move, connect, draw
+    let panX = 0, panY = 0, scale = 1;
+    let isSpacePressed = false, isDraggingBoard = false, isDrawing = false;
+    let startX, startY;
+    let activeItem = null; // Para arrastrar fichas
+    let selectedItemId = null; // Para borrar con SUPR
+    let connectingSource = null;
+    let currentPath = [];
+    let animationFrameId; // Para optimización gráfica
+
+    function enterBoard() {
+        loadData();
+        document.getElementById('board-view').className = document.getElementById('board-bg-select').value;
+        adminView.style.display = 'none';
+        boardView.style.display = 'block';
+        
+        // Petición de pantalla completa del sistema operativo
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => console.log("Error Fullscreen"));
+        }
+        
+        centerCamera();
+        renderDOM();
+        drawAll();
+    }
+
+    function exitBoard() {
+        if (document.fullscreenElement) document.exitFullscreen();
+        boardView.style.display = 'none';
+        adminView.style.display = 'flex';
+        triggerAutoSave();
+    }
+
+    // Capturar si el usuario sale de pantalla completa pulsando ESC
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && boardView.style.display === 'block') {
+            exitBoard();
+        }
+    });
+
+    function centerCamera() { panX = 100; panY = 50; scale = 1; updateTransform(); }
     function updateTransform() { container.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`; }
 
-    board.addEventListener('wheel', (e) => {
+    // ==========================================
+    // ATAJOS DE TECLADO Y RATÓN
+    // ==========================================
+    window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        if (e.code === 'Space' && boardView.style.display === 'block') { e.preventDefault(); isSpacePressed = true; boardView.style.cursor = 'grab'; }
+        if (e.key.toLowerCase() === 'v') setMode('move');
+        if (e.key.toLowerCase() === 'c') setMode('connect');
+        if (e.key.toLowerCase() === 'd') setMode('draw');
+        if (e.key === 'Delete' || e.key === 'Backspace') deleteSelectedItem();
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') { isSpacePressed = false; boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; }
+    });
+
+    boardView.addEventListener('wheel', (e) => {
+        if(boardView.style.display !== 'block') return;
         e.preventDefault();
         let oldScale = scale;
-        scale = Math.max(0.3, Math.min(2.5, scale + (e.deltaY < 0 ? 0.1 : -0.1)));
-        const rect = board.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-        panX = mouseX - (mouseX - panX) * (scale / oldScale);
-        panY = mouseY - (mouseY - panY) * (scale / oldScale);
+        scale = Math.max(0.3, Math.min(2.5, scale + (e.deltaY < 0 ? 0.08 : -0.08)));
+        const rect = boardView.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        panX = mx - (mx - panX) * (scale / oldScale);
+        panY = my - (my - panY) * (scale / oldScale);
         updateTransform();
     }, { passive: false });
 
-    board.addEventListener('mousedown', (e) => {
-        if (mode === 'draw') {
-            isDrawing = true;
-            const rect = container.getBoundingClientRect();
-            currentPath = [{ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }];
-            e.stopPropagation();
-            return;
-        }
-        if (e.target === board || e.target.tagName === 'CANVAS' || e.target === container) {
-            isPanning = true;
-            startPanX = e.clientX - panX;
-            startPanY = e.clientY - panY;
+    boardView.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.floating-toolbar') || e.target.closest('.modal-overlay')) return;
+
+        // Deseleccionar
+        if (e.target === boardView || e.target.tagName === 'CANVAS' || e.target === container) {
+            selectItem(null);
+            
+            if (mode === 'draw' && !isSpacePressed) {
+                isDrawing = true;
+                const rect = container.getBoundingClientRect();
+                currentPath = [{ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }];
+                return;
+            }
+
+            // Iniciar arrastre del tablero (Pan)
+            isDraggingBoard = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            if(isSpacePressed || mode === 'move') boardView.style.cursor = 'grabbing';
         }
     });
 
     window.addEventListener('mousemove', (e) => {
-        if (isDrawing && mode === 'draw') {
-            const rect = container.getBoundingClientRect();
-            currentPath.push({ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale });
-            redrawDrawings(); drawCurrentPath();
+        if (boardView.style.display !== 'block') return;
+
+        // Arrastrar Ficha o Nota
+        if (activeItem) {
+            activeItem.item.x = (e.clientX - panX) / scale - activeItem.offsetX;
+            activeItem.item.y = (e.clientY - panY) / scale - activeItem.offsetY;
+            activeItem.el.style.left = activeItem.item.x + 'px';
+            activeItem.el.style.top = activeItem.item.y + 'px';
+            
+            // Optimización con requestAnimationFrame para los hilos
+            if (!animationFrameId) {
+                animationFrameId = requestAnimationFrame(() => {
+                    drawStrings();
+                    animationFrameId = null;
+                });
+            }
             return;
         }
-        if (isPanning) { panX = e.clientX - startPanX; panY = e.clientY - startPanY; updateTransform(); }
+
+        // Dibujar Rotulador
+        if (isDrawing) {
+            const rect = container.getBoundingClientRect();
+            currentPath.push({ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale });
+            if (!animationFrameId) {
+                animationFrameId = requestAnimationFrame(() => {
+                    redrawDrawings();
+                    drawCurrentPath();
+                    animationFrameId = null;
+                });
+            }
+            return;
+        }
+
+        // Arrastrar Tablero (Pan)
+        if (isDraggingBoard) {
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateTransform();
+        }
     });
 
     window.addEventListener('mouseup', () => {
-        if (isDrawing && mode === 'draw') {
+        if (activeItem) { activeItem.el.classList.remove('front'); activeItem = null; triggerAutoSave(); }
+        if (isDraggingBoard) { isDraggingBoard = false; if(!isSpacePressed && mode !== 'draw') boardView.style.cursor = 'default'; }
+        if (isDrawing) {
             isDrawing = false;
-            if (currentPath.length > 1) drawings.push([...currentPath]);
-            currentPath = []; redrawDrawings();
-            return;
+            if (currentPath.length > 2) { items.drawings.push([...currentPath]); triggerAutoSave(); }
+            currentPath = [];
+            redrawDrawings();
         }
-        isPanning = false;
     });
 
-    function changeBackground(type) { currentBg = type; board.className = type + (mode === 'draw' ? ' drawing-mode' : ''); }
+    // ==========================================
+    // LÓGICA DE HERRAMIENTAS Y DOM
+    // ==========================================
+    function setMode(newMode) {
+        mode = newMode;
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-mode-' + newMode.charAt(0)).classList.add('active');
+        boardView.style.cursor = mode === 'draw' ? 'crosshair' : 'default';
+        connectingSource = null;
+    }
 
-    function initBoard() {
-        const saved = localStorage.getItem('viernes_rol_op_OPERATION-STYX');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            individuals = parsed.individuals || []; notes = parsed.notes || []; connections = parsed.connections || []; drawings = parsed.drawings || []; currentBg = parsed.bg || 'cork';
-        } else {
-            individuals = [{ id: 1, name: "Dr. Victor March", role: "MÉDICO FORENSE", desc: "Autopsia realizada en Omaha.", x: 250, y: 150, pin: "red", img: "" }];
-            notes = [{ id: 'n1', text: "Revisar informes antes del viernes.", color: "yellow", x: 280, y: 420, pin: "yellow" }];
+    function selectItem(id) {
+        selectedItemId = id;
+        document.querySelectorAll('.individual-card, .note-card').forEach(el => el.classList.remove('selected-glow'));
+        if (id) {
+            const el = document.querySelector(`[data-id='${id}']`);
+            if(el) el.classList.add('selected-glow');
         }
-        document.getElementById('board-bg-select').value = currentBg;
-        changeBackground(currentBg); updateTransform(); renderBoard(); drawStrings(); redrawDrawings();
     }
 
-    function renderBoard() {
+    function deleteSelectedItem() {
+        if (!selectedItemId) return;
+        items.cards = items.cards.filter(c => c.id !== selectedItemId);
+        items.notes = items.notes.filter(n => n.id !== selectedItemId);
+        items.connections = items.connections.filter(c => c.from !== selectedItemId && c.to !== selectedItemId);
+        selectedItemId = null;
+        renderDOM(); drawAll(); triggerAutoSave();
+    }
+
+    function renderDOM() {
         document.querySelectorAll('.individual-card, .note-card').forEach(el => el.remove());
-        individuals.forEach(ind => {
-            const card = document.createElement('div');
-            card.className = 'individual-card'; card.style.left = ind.x + 'px'; card.style.top = ind.y + 'px';
-            card.innerHTML = `
-                <div class="card-actions"><button class="card-action-btn delete" onclick="deleteCard(${ind.id})">✕</button></div>
-                <div class="pin ${ind.pin || 'red'}" onclick="handlePinClick(event, ${ind.id})"></div>
-                <div class="individual-img-container"><img src="${ind.img || 'https://placehold.co/300x300/111/D9A74A?text=Foto'}"></div>
-                <div class="individual-info"><h3>${ind.name}</h3><div class="individual-role">${ind.role}</div><div class="individual-desc">${ind.desc}</div></div>
+        
+        items.cards.forEach(c => {
+            const el = document.createElement('div');
+            el.className = 'individual-card'; el.dataset.id = c.id;
+            el.style.left = c.x + 'px'; el.style.top = c.y + 'px';
+            el.innerHTML = `
+                <div class="pin ${c.pin}" onclick="handlePin(event, '${c.id}')"></div>
+                <div class="individual-img-container"><img src="${c.img || 'https://placehold.co/300x200/111/D9A74A?text=Foto'}"></div>
+                <div class="individual-info"><h3>${c.name}</h3><div class="individual-role">${c.role}</div><div class="individual-desc">${c.desc}</div></div>
             `;
-            let isDrag = false, sX, sY;
-            card.addEventListener('mousedown', (e) => {
-                if (mode === 'draw' || mode === 'connect' || e.target.tagName === 'BUTTON' || e.target.classList.contains('pin')) return;
-                isDrag = true; sX = (e.clientX - panX) / scale - ind.x; sY = (e.clientY - panY) / scale - ind.y; e.stopPropagation();
-            });
-            window.addEventListener('mousemove', (e) => { if (!isDrag) return; ind.x = (e.clientX - panX) / scale - sX; ind.y = (e.clientY - panY) / scale - sY; card.style.left = ind.x + 'px'; card.style.top = ind.y + 'px'; drawStrings(); });
-            window.addEventListener('mouseup', () => isDrag = false);
-            container.appendChild(card);
+            attachDrag(el, c);
+            container.appendChild(el);
         });
 
-        notes.forEach(note => {
-            const nEl = document.createElement('div');
-            nEl.className = `note-card ${note.color || 'yellow'}`; nEl.style.left = note.x + 'px'; nEl.style.top = note.y + 'px';
-            nEl.innerHTML = `<div class="card-actions"><button class="card-action-btn delete" onclick="deleteNote('${note.id}')">✕</button></div><div class="pin ${note.pin || 'yellow'}" onclick="handlePinClick(event, '${note.id}')"></div><div style="margin-top:10px;">${note.text}</div>`;
-            let isDrag = false, sX, sY;
-            nEl.addEventListener('mousedown', (e) => {
-                if (mode === 'draw' || mode === 'connect' || e.target.tagName === 'BUTTON' || e.target.classList.contains('pin')) return;
-                isDrag = true; sX = (e.clientX - panX) / scale - note.x; sY = (e.clientY - panY) / scale - note.y; e.stopPropagation();
-            });
-            window.addEventListener('mousemove', (e) => { if (!isDrag) return; note.x = (e.clientX - panX) / scale - sX; note.y = (e.clientY - panY) / scale - sY; nEl.style.left = note.x + 'px'; nEl.style.top = note.y + 'px'; drawStrings(); });
-            window.addEventListener('mouseup', () => isDrag = false);
-            container.appendChild(nEl);
+        items.notes.forEach(n => {
+            const el = document.createElement('div');
+            el.className = `note-card ${n.color}`; el.dataset.id = n.id;
+            el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
+            el.innerHTML = `<div class="pin ${n.pin || 'yellow'}" onclick="handlePin(event, '${n.id}')"></div><div style="margin-top:10px;">${n.text}</div>`;
+            attachDrag(el, n);
+            container.appendChild(el);
         });
+        if(selectedItemId) selectItem(selectedItemId);
     }
 
-    function redrawDrawings() {
-        const ctx = drawingCanvas.getContext('2d'); ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-        ctx.strokeStyle = '#cc2222'; ctx.lineWidth = 4; ctx.lineCap = 'round';
-        drawings.forEach(p => { if (p.length < 2) return; ctx.beginPath(); ctx.moveTo(p[0].x, p[0].y); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].x, p[i].y); ctx.stroke(); });
-    }
-    function drawCurrentPath() {
-        if (currentPath.length < 2) return;
-        const ctx = drawingCanvas.getContext('2d'); ctx.strokeStyle = '#cc2222'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(currentPath[0].x, currentPath[0].y); for (let i = 1; i < currentPath.length; i++) ctx.lineTo(currentPath[i].x, currentPath[i].y); ctx.stroke();
-    }
-    function drawStrings() {
-        const ctx = document.getElementById('string-canvas').getContext('2d'); ctx.clearRect(0, 0, 6000, 6000);
-        ctx.lineWidth = 2.5; ctx.strokeStyle = '#b22222';
-        connections.forEach(c => {
-            const f = individuals.find(i => i.id === c.from) || notes.find(n => n.id === c.from);
-            const t = individuals.find(i => i.id === c.to) || notes.find(n => n.id === c.to);
-            if (f && t) {
-                ctx.beginPath(); ctx.moveTo(f.x + 125, f.y + 10); ctx.quadraticCurveTo((f.x + t.x)/2 + 10, (f.y + t.y)/2 + 10, t.x + 110, t.y + 10); ctx.stroke();
+    function attachDrag(el, itemData) {
+        el.addEventListener('mousedown', (e) => {
+            if (isSpacePressed || mode === 'draw') return;
+            if (e.target.classList.contains('pin')) return;
+            
+            e.stopPropagation();
+            selectItem(itemData.id);
+            
+            if (mode === 'move') {
+                el.classList.add('front'); // Traer al frente
+                activeItem = {
+                    item: itemData,
+                    el: el,
+                    offsetX: (e.clientX - panX) / scale - itemData.x,
+                    offsetY: (e.clientY - panY) / scale - itemData.y
+                };
             }
         });
     }
-    function toggleMode() {
-        if (mode === 'move') { mode = 'connect'; document.getElementById('mode-name').innerText = 'Conectar'; board.classList.remove('drawing-mode'); }
-        else if (mode === 'connect') { mode = 'draw'; document.getElementById('mode-name').innerText = 'Dibujar'; board.classList.add('drawing-mode'); }
-        else { mode = 'move'; document.getElementById('mode-name').innerText = 'Mover'; board.classList.remove('drawing-mode'); }
-    }
-    function handlePinClick(e, id) {
+
+    function handlePin(e, id) {
+        e.stopPropagation();
         if (mode === 'connect') {
-            e.stopPropagation();
             if (!connectingSource) connectingSource = id;
             else {
-                if (connectingSource !== id && !connections.some(c => (c.from === connectingSource && c.to === id) || (c.from === id && c.to === connectingSource))) {
-                    connections.push({ from: connectingSource, to: id });
+                if (connectingSource !== id && !items.connections.some(c => (c.from === connectingSource && c.to === id) || (c.from === id && c.to === connectingSource))) {
+                    items.connections.push({ from: connectingSource, to: id });
                 }
-                connectingSource = null; drawStrings();
+                connectingSource = null; drawStrings(); triggerAutoSave();
             }
         }
     }
-    function saveOperation() {
-        localStorage.setItem('viernes_rol_op_OPERATION-STYX', JSON.stringify({ individuals, notes, connections, drawings, bg: currentBg }));
-        alert("¡Tablero guardado con éxito!");
+
+    // ==========================================
+    // RENDERIZADO DE CANVAS (OPTIMIZADO)
+    // ==========================================
+    function drawAll() { redrawDrawings(); drawStrings(); }
+
+    function redrawDrawings() {
+        dCtx.clearRect(0, 0, 6000, 6000);
+        dCtx.strokeStyle = '#cc2222'; dCtx.lineWidth = 4; dCtx.lineCap = 'round'; dCtx.lineJoin = 'round';
+        items.drawings.forEach(p => {
+            if (p.length < 2) return;
+            dCtx.beginPath(); dCtx.moveTo(p[0].x, p[0].y);
+            for (let i = 1; i < p.length; i++) dCtx.lineTo(p[i].x, p[i].y);
+            dCtx.stroke();
+        });
     }
-    function loadOperation() { initBoard(); alert("¡Tablero cargado!"); }
-    function addNewCard() {
-        document.getElementById('form-card-id').value = ''; document.getElementById('form-name').value = ''; document.getElementById('form-modal').style.display = 'flex';
+    
+    function drawCurrentPath() {
+        if (currentPath.length < 2) return;
+        dCtx.strokeStyle = '#cc2222'; dCtx.lineWidth = 4; dCtx.lineCap = 'round'; dCtx.lineJoin = 'round';
+        dCtx.beginPath(); dCtx.moveTo(currentPath[0].x, currentPath[0].y);
+        for (let i = 1; i < currentPath.length; i++) dCtx.lineTo(currentPath[i].x, currentPath[i].y);
+        dCtx.stroke();
     }
-    function submitCardForm() {
-        individuals.push({ id: Date.now(), name: document.getElementById('form-name').value || 'Sujeto', role: document.getElementById('form-role').value || 'CONTACTO', desc: document.getElementById('form-desc').value, x: 200, y: 200, pin: 'red', img: document.getElementById('form-img').value });
-        closeFormModal(); renderBoard();
+
+    function drawStrings() {
+        sCtx.clearRect(0, 0, 6000, 6000);
+        sCtx.lineWidth = 2.5; sCtx.strokeStyle = '#b22222'; sCtx.shadowColor = 'rgba(0,0,0,0.8)'; sCtx.shadowBlur = 4;
+        
+        items.connections.forEach(c => {
+            const f = items.cards.find(i => i.id === c.from) || items.notes.find(n => n.id === c.from);
+            const t = items.cards.find(i => i.id === c.to) || items.notes.find(n => n.id === c.to);
+            if (f && t) {
+                const fW = f.role ? 125 : 110; const tW = t.role ? 125 : 110; // offset por ancho tarjeta/nota
+                sCtx.beginPath(); sCtx.moveTo(f.x + fW, f.y + 10);
+                sCtx.quadraticCurveTo((f.x + t.x)/2 + 10, (f.y + t.y)/2 + 20, t.x + tW, t.y + 10);
+                sCtx.stroke();
+            }
+        });
     }
-    function closeFormModal() { document.getElementById('form-modal').style.display = 'none'; }
-    function deleteCard(id) { individuals = individuals.filter(i => i.id !== id); renderBoard(); drawStrings(); }
-    function deleteNote(id) { notes = notes.filter(n => n.id !== id); renderBoard(); drawStrings(); }
-    function clearBoardData() { if(confirm("¿Limpiar hilos y dibujos?")) { connections = []; drawings = []; drawStrings(); redrawDrawings(); } }
+
+    // ==========================================
+    // MODALES Y FORMULARIOS
+    // ==========================================
+    function openAddCard() { document.getElementById('fc-name').value=''; document.getElementById('modal-card').style.display='flex'; }
+    function submitCard() {
+        items.cards.push({
+            id: 'c' + Date.now(),
+            name: document.getElementById('fc-name').value || 'Sujeto Desconocido',
+            role: document.getElementById('fc-role').value || 'VÍNCULO',
+            desc: document.getElementById('fc-desc').value,
+            img: document.getElementById('fc-img').value,
+            x: (-panX + window.innerWidth/2)/scale, y: (-panY + window.innerHeight/2)/scale, pin: 'red'
+        });
+        document.getElementById('modal-card').style.display='none';
+        renderDOM(); triggerAutoSave();
+    }
+
+    function openAddNote() { document.getElementById('fn-text').value=''; document.getElementById('modal-note').style.display='flex'; }
+    function submitNote() {
+        items.notes.push({
+            id: 'n' + Date.now(),
+            text: document.getElementById('fn-text').value || '...',
+            color: document.getElementById('fn-color').value,
+            x: (-panX + window.innerWidth/2)/scale, y: (-panY + window.innerHeight/2)/scale, pin: 'yellow'
+        });
+        document.getElementById('modal-note').style.display='none';
+        renderDOM(); triggerAutoSave();
+    }
+
+    // ==========================================
+    // IMPORTAR / EXPORTAR JSON
+    // ==========================================
+    function exportJSON() {
+        const op = document.getElementById('op-name').value || 'operacion';
+        const data = localStorage.getItem('delta_green_op_' + op);
+        if(!data) return alert("No hay datos guardados para esta operación.");
+        const anchor = document.createElement('a');
+        anchor.href = "data:text/json;charset=utf-8," + encodeURIComponent(data);
+        anchor.download = op + ".json";
+        document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    }
+    
+    function importJSON(e) {
+        if (!e.target.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const parsed = JSON.parse(evt.target.result);
+                if (parsed.cards) {
+                    const op = document.getElementById('op-name').value || 'operacion_importada';
+                    localStorage.setItem('delta_green_op_' + op, evt.target.result);
+                    alert("¡Partida cargada! Pulsa 'Iniciar Operación' para verla.");
+                } else alert("Formato JSON no válido.");
+            } catch (err) { alert("Error al leer el archivo JSON."); }
+        };
+        reader.readAsText(e.target.files[0]);
+    }
 </script>
 </body>
 </html>
