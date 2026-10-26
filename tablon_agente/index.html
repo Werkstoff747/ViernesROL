@@ -211,7 +211,7 @@
     <div id="board-view" class="cork">
         <div class="autosave-toast" id="autosave-toast"><i class="fa-solid fa-floppy-disk"></i> Autoguardado...</div>
         
-        <!-- Barra de herramientas flotante (Sólo visible en el tablero) -->
+        <!-- Barra de herramientas flotante -->
         <div class="floating-toolbar">
             <button class="tool-btn active" id="btn-mode-v" onclick="setMode('move')" title="Mover Fichas (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
             <button class="tool-btn" id="btn-mode-c" onclick="setMode('connect')" title="Conectar Hilos (C)"><i class="fa-solid fa-circle-nodes"></i></button>
@@ -229,7 +229,7 @@
         </div>
     </div>
 
-    <!-- MODALES DE CREACIÓN (Para el Tablero) -->
+    <!-- MODALES DE CREACIÓN -->
     <div id="modal-card" class="modal-overlay" onclick="if(event.target === this) this.style.display='none'">
         <div class="form-content">
             <h2 style="color:var(--accent-gold); font-family:'Special Elite'; font-size:1.2rem; margin-bottom:10px;">EXPEDIENTE CLASIFICADO</h2>
@@ -278,17 +278,32 @@
             const toast = document.getElementById('autosave-toast');
             toast.style.opacity = 1;
             setTimeout(() => toast.style.opacity = 0, 1500);
-        }, 1000); // Guarda 1 segundo después de dejar de interactuar
+        }, 1000); 
     }
 
     function loadData() {
         currentOp = document.getElementById('op-name').value || 'STYX';
-        const saved = localStorage.getItem('delta_green_op_' + currentOp);
+        
+        // Parche de retrocompatibilidad para leer claves antiguas
+        let saved = localStorage.getItem('delta_green_op_' + currentOp);
+        if (!saved) saved = localStorage.getItem('viernes_rol_op_' + currentOp);
+        
         if (saved) {
             items = JSON.parse(saved);
+            
+            // Migración automática de JSON antiguo (individuals -> cards)
+            if (items.individuals) {
+                items.cards = items.individuals;
+                delete items.individuals;
+            }
+            if (items.suspects) {
+                items.cards = items.suspects;
+                delete items.suspects;
+            }
+            
             document.getElementById('board-bg-select').value = items.bg || 'cork';
         } else {
-            // Datos por defecto si es nueva
+            // Datos por defecto
             items = {
                 cards: [{ id: 'c1', name: "Dr. Victor March", role: "MÉDICO FORENSE", desc: "Fallecido en extrañas circunstancias.", img: "", x: 200, y: 150, pin: "red" }],
                 notes: [{ id: 'n1', text: "No confíes en nadie de Omaha.", color: "yellow", x: 250, y: 400, pin: "yellow" }],
@@ -309,15 +324,15 @@
     const sCtx = sCanvas.getContext('2d');
     const dCtx = dCanvas.getContext('2d');
 
-    let mode = 'move'; // move, connect, draw
+    let mode = 'move'; 
     let panX = 0, panY = 0, scale = 1;
     let isSpacePressed = false, isDraggingBoard = false, isDrawing = false;
     let startX, startY;
-    let activeItem = null; // Para arrastrar fichas
-    let selectedItemId = null; // Para borrar con SUPR
+    let activeItem = null; 
+    let selectedItemId = null; 
     let connectingSource = null;
     let currentPath = [];
-    let animationFrameId; // Para optimización gráfica
+    let animationFrameId;
 
     function enterBoard() {
         loadData();
@@ -325,7 +340,6 @@
         adminView.style.display = 'none';
         boardView.style.display = 'block';
         
-        // Petición de pantalla completa del sistema operativo
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(err => console.log("Error Fullscreen"));
         }
@@ -342,11 +356,8 @@
         triggerAutoSave();
     }
 
-    // Capturar si el usuario sale de pantalla completa pulsando ESC
     document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement && boardView.style.display === 'block') {
-            exitBoard();
-        }
+        if (!document.fullscreenElement && boardView.style.display === 'block') exitBoard();
     });
 
     function centerCamera() { panX = 100; panY = 50; scale = 1; updateTransform(); }
@@ -357,7 +368,6 @@
     // ==========================================
     window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        
         if (e.code === 'Space' && boardView.style.display === 'block') { e.preventDefault(); isSpacePressed = true; boardView.style.cursor = 'grab'; }
         if (e.key.toLowerCase() === 'v') setMode('move');
         if (e.key.toLowerCase() === 'c') setMode('connect');
@@ -383,19 +393,15 @@
 
     boardView.addEventListener('mousedown', (e) => {
         if (e.target.closest('.floating-toolbar') || e.target.closest('.modal-overlay')) return;
-
-        // Deseleccionar
+        
         if (e.target === boardView || e.target.tagName === 'CANVAS' || e.target === container) {
             selectItem(null);
-            
             if (mode === 'draw' && !isSpacePressed) {
                 isDrawing = true;
                 const rect = container.getBoundingClientRect();
                 currentPath = [{ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale }];
                 return;
             }
-
-            // Iniciar arrastre del tablero (Pan)
             isDraggingBoard = true;
             startX = e.clientX - panX;
             startY = e.clientY - panY;
@@ -406,14 +412,12 @@
     window.addEventListener('mousemove', (e) => {
         if (boardView.style.display !== 'block') return;
 
-        // Arrastrar Ficha o Nota
         if (activeItem) {
             activeItem.item.x = (e.clientX - panX) / scale - activeItem.offsetX;
             activeItem.item.y = (e.clientY - panY) / scale - activeItem.offsetY;
             activeItem.el.style.left = activeItem.item.x + 'px';
             activeItem.el.style.top = activeItem.item.y + 'px';
             
-            // Optimización con requestAnimationFrame para los hilos
             if (!animationFrameId) {
                 animationFrameId = requestAnimationFrame(() => {
                     drawStrings();
@@ -423,26 +427,19 @@
             return;
         }
 
-        // Dibujar Rotulador
         if (isDrawing) {
             const rect = container.getBoundingClientRect();
             currentPath.push({ x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale });
             if (!animationFrameId) {
                 animationFrameId = requestAnimationFrame(() => {
-                    redrawDrawings();
-                    drawCurrentPath();
+                    redrawDrawings(); drawCurrentPath();
                     animationFrameId = null;
                 });
             }
             return;
         }
 
-        // Arrastrar Tablero (Pan)
-        if (isDraggingBoard) {
-            panX = e.clientX - startX;
-            panY = e.clientY - startY;
-            updateTransform();
-        }
+        if (isDraggingBoard) { panX = e.clientX - startX; panY = e.clientY - startY; updateTransform(); }
     });
 
     window.addEventListener('mouseup', () => {
@@ -451,8 +448,7 @@
         if (isDrawing) {
             isDrawing = false;
             if (currentPath.length > 2) { items.drawings.push([...currentPath]); triggerAutoSave(); }
-            currentPath = [];
-            redrawDrawings();
+            currentPath = []; redrawDrawings();
         }
     });
 
@@ -497,8 +493,7 @@
                 <div class="individual-img-container"><img src="${c.img || 'https://placehold.co/300x200/111/D9A74A?text=Foto'}"></div>
                 <div class="individual-info"><h3>${c.name}</h3><div class="individual-role">${c.role}</div><div class="individual-desc">${c.desc}</div></div>
             `;
-            attachDrag(el, c);
-            container.appendChild(el);
+            attachDrag(el, c); container.appendChild(el);
         });
 
         items.notes.forEach(n => {
@@ -506,28 +501,18 @@
             el.className = `note-card ${n.color}`; el.dataset.id = n.id;
             el.style.left = n.x + 'px'; el.style.top = n.y + 'px';
             el.innerHTML = `<div class="pin ${n.pin || 'yellow'}" onclick="handlePin(event, '${n.id}')"></div><div style="margin-top:10px;">${n.text}</div>`;
-            attachDrag(el, n);
-            container.appendChild(el);
+            attachDrag(el, n); container.appendChild(el);
         });
         if(selectedItemId) selectItem(selectedItemId);
     }
 
     function attachDrag(el, itemData) {
         el.addEventListener('mousedown', (e) => {
-            if (isSpacePressed || mode === 'draw') return;
-            if (e.target.classList.contains('pin')) return;
-            
-            e.stopPropagation();
-            selectItem(itemData.id);
-            
+            if (isSpacePressed || mode === 'draw' || e.target.classList.contains('pin')) return;
+            e.stopPropagation(); selectItem(itemData.id);
             if (mode === 'move') {
-                el.classList.add('front'); // Traer al frente
-                activeItem = {
-                    item: itemData,
-                    el: el,
-                    offsetX: (e.clientX - panX) / scale - itemData.x,
-                    offsetY: (e.clientY - panY) / scale - itemData.y
-                };
+                el.classList.add('front');
+                activeItem = { item: itemData, el: el, offsetX: (e.clientX - panX) / scale - itemData.x, offsetY: (e.clientY - panY) / scale - itemData.y };
             }
         });
     }
@@ -546,7 +531,7 @@
     }
 
     // ==========================================
-    // RENDERIZADO DE CANVAS (OPTIMIZADO)
+    // RENDERIZADO DE CANVAS
     // ==========================================
     function drawAll() { redrawDrawings(); drawStrings(); }
 
@@ -577,7 +562,7 @@
             const f = items.cards.find(i => i.id === c.from) || items.notes.find(n => n.id === c.from);
             const t = items.cards.find(i => i.id === c.to) || items.notes.find(n => n.id === c.to);
             if (f && t) {
-                const fW = f.role ? 125 : 110; const tW = t.role ? 125 : 110; // offset por ancho tarjeta/nota
+                const fW = f.role ? 125 : 110; const tW = t.role ? 125 : 110;
                 sCtx.beginPath(); sCtx.moveTo(f.x + fW, f.y + 10);
                 sCtx.quadraticCurveTo((f.x + t.x)/2 + 10, (f.y + t.y)/2 + 20, t.x + tW, t.y + 10);
                 sCtx.stroke();
@@ -598,8 +583,7 @@
             img: document.getElementById('fc-img').value,
             x: (-panX + window.innerWidth/2)/scale, y: (-panY + window.innerHeight/2)/scale, pin: 'red'
         });
-        document.getElementById('modal-card').style.display='none';
-        renderDOM(); triggerAutoSave();
+        document.getElementById('modal-card').style.display='none'; renderDOM(); triggerAutoSave();
     }
 
     function openAddNote() { document.getElementById('fn-text').value=''; document.getElementById('modal-note').style.display='flex'; }
@@ -610,19 +594,21 @@
             color: document.getElementById('fn-color').value,
             x: (-panX + window.innerWidth/2)/scale, y: (-panY + window.innerHeight/2)/scale, pin: 'yellow'
         });
-        document.getElementById('modal-note').style.display='none';
-        renderDOM(); triggerAutoSave();
+        document.getElementById('modal-note').style.display='none'; renderDOM(); triggerAutoSave();
     }
 
     // ==========================================
-    // IMPORTAR / EXPORTAR JSON
+    // IMPORTAR / EXPORTAR JSON (RETROCOMPATIBLE)
     // ==========================================
     function exportJSON() {
         const op = document.getElementById('op-name').value || 'operacion';
-        const data = localStorage.getItem('delta_green_op_' + op);
-        if(!data) return alert("No hay datos guardados para esta operación.");
+        
+        // Antes de exportar, nos aseguramos de que estamos guardando el formato más reciente internamente.
+        items.bg = document.getElementById('board-bg-select').value;
+        const dataStr = JSON.stringify(items);
+        
         const anchor = document.createElement('a');
-        anchor.href = "data:text/json;charset=utf-8," + encodeURIComponent(data);
+        anchor.href = "data:text/json;charset=utf-8," + encodeURIComponent(dataStr);
         anchor.download = op + ".json";
         document.body.appendChild(anchor); anchor.click(); anchor.remove();
     }
@@ -633,11 +619,24 @@
         reader.onload = function(evt) {
             try {
                 const parsed = JSON.parse(evt.target.result);
+                
+                // --- PARCHE DE RETROCOMPATIBILIDAD PARA VIEJOS JSON ---
+                if (parsed.individuals) {
+                    parsed.cards = parsed.individuals;
+                    delete parsed.individuals;
+                }
+                if (parsed.suspects) {
+                    parsed.cards = parsed.suspects;
+                    delete parsed.suspects;
+                }
+                
                 if (parsed.cards) {
                     const op = document.getElementById('op-name').value || 'operacion_importada';
-                    localStorage.setItem('delta_green_op_' + op, evt.target.result);
-                    alert("¡Partida cargada! Pulsa 'Iniciar Operación' para verla.");
-                } else alert("Formato JSON no válido.");
+                    localStorage.setItem('delta_green_op_' + op, JSON.stringify(parsed));
+                    alert("¡Partida cargada! Pulsa 'INICIAR OPERACIÓN' para verla.");
+                } else {
+                    alert("Formato JSON no válido. No se encontraron datos compatibles.");
+                }
             } catch (err) { alert("Error al leer el archivo JSON."); }
         };
         reader.readAsText(e.target.files[0]);
