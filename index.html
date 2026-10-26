@@ -8,7 +8,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="imagenes/dado_logo.png">    
 
-    <!-- Google Fonts: Permanent Marker & Inter (Sin Cinzel) -->
+    <!-- Google Fonts: Permanent Marker & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -16,14 +16,7 @@
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- SDK de Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <style>
-        /* =========================================================
-            VARIABLES DE TEMA (INTERFAZ DE ROL CLÁSICA)
-            ========================================================= */
         :root {
             --bg-color: #121824;
             --card-bg: #1A2333;
@@ -77,85 +70,6 @@
             text-align: center;
         }
 
-        /* =========================================================
-            PANTALLA DE ACCESO / LOGIN (BLOQUEO)
-            ========================================================= */
-        #authOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            transition: opacity 0.3s ease;
-        }
-
-        .auth-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 40px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
-        .auth-card h2 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--text-main);
-        }
-
-        .auth-input {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-color);
-            border: 1px solid var(--card-border);
-            border-radius: 6px;
-            color: var(--text-main);
-            font-size: 1rem;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .auth-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent-gold);
-            color: var(--bg-color);
-            border: none;
-            border-radius: 6px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .auth-btn:hover {
-            background: var(--accent-gold-hover);
-        }
-
-        .auth-error {
-            color: var(--marker-red);
-            font-size: 0.85rem;
-            margin-top: 15px;
-            display: none;
-        }
-
-        #mainContent {
-            display: none;
-        }
-
-        /* =========================================================
-            CABECERA
-            ========================================================= */
         header {
             padding: 35px 20px;
             border-bottom: 2px solid var(--header-border);
@@ -205,12 +119,9 @@
             color: var(--text-muted);
             letter-spacing: 1px;
             font-family: 'Inter', sans-serif;
-            text-transform: none;
+            text-transform: none; /* Mantiene la frase en formato normal sin forzar mayúsculas */
         }
 
-        /* =========================================================
-            CUADRÍCULA DE TARJETAS DEL HUB
-            ========================================================= */
         .hub-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -312,9 +223,6 @@
             color: var(--bg-color);
         }
 
-        /* =========================================================
-            BOTONES FLOTANTES
-            ========================================================= */
         .floating-btn-container {
             position: fixed;
             bottom: 25px;
@@ -371,19 +279,7 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE ACCESO (MODAL/OVERLAY) -->
-    <div id="authOverlay">
-        <div class="auth-card">
-            <h2>Acceso Restringido</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Introduce la clave de acceso para entrar a la comunidad.</p>
-            <input type="password" id="passwordInput" class="auth-input" placeholder="Contraseña...">
-            <button id="loginBtn" class="auth-btn">Acceder</button>
-            <div id="authError" class="auth-error">Contraseña incorrecta.</div>
-        </div>
-    </div>
-
-    <!-- CONTENIDO PRINCIPAL DE LA WEB -->
-    <div id="mainContent" class="container">
+    <div class="container">
         <header>
             <div class="header-content">
                 <img src="imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
@@ -411,34 +307,11 @@
     </div>
 
 <script>
-    const firebaseConfig = {
-        databaseURL: "https://drrol-chat-default-rtdb.europe-west1.firebasedatabase.app/"
-    };
-
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
-
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?output=csv';
-
-    const authOverlay = document.getElementById('authOverlay');
-    const mainContent = document.getElementById('mainContent');
-    const passwordInput = document.getElementById('passwordInput');
-    const loginBtn = document.getElementById('loginBtn');
-    const authError = document.getElementById('authError');
 
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
-        
-        if (sessionStorage.getItem('viernes_rol_auth') === 'true') {
-            desbloquearWeb();
-        }
-
-        loginBtn.addEventListener('click', verificarContrasena);
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') verificarContrasena();
-        });
+        cargarTarjetasDesdeSheet();
 
         window.addEventListener('scroll', () => {
             const scrollTopBtn = document.getElementById("scrollTopBtn");
@@ -449,49 +322,6 @@
             }
         });
     });
-
-    async function verificarContrasena() {
-        const passwordIngresada = passwordInput.value.trim();
-        if (!passwordIngresada) return;
-
-        loginBtn.textContent = "Verificando...";
-        loginBtn.disabled = true;
-
-        try {
-            const snapshot = await db.ref('password_viernes').once('value');
-            const passwordReal = snapshot.val();
-
-            if (passwordIngresada === passwordReal) {
-                sessionStorage.setItem('viernes_rol_auth', 'true');
-                desbloquearWeb();
-            } else {
-                mostrarError();
-            }
-        } catch (error) {
-            console.error("Error al conectar con Firebase:", error);
-            authError.textContent = "Error de conexión con la base de datos.";
-            authError.style.display = 'block';
-            loginBtn.textContent = "Acceder";
-            loginBtn.disabled = false;
-        }
-    }
-
-    function desbloquearWeb() {
-        authOverlay.style.opacity = '0';
-        setTimeout(() => {
-            authOverlay.style.display = 'none';
-            mainContent.style.display = 'block';
-            cargarTarjetasDesdeSheet();
-        }, 300);
-    }
-
-    function mostrarError() {
-        authError.style.display = 'block';
-        passwordInput.value = '';
-        loginBtn.textContent = "Acceder";
-        loginBtn.disabled = false;
-        passwordInput.focus();
-    }
 
     async function cargarTarjetasDesdeSheet() {
         const gridContainer = document.getElementById('hubGrid');
