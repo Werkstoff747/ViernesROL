@@ -33,6 +33,7 @@
             --card-title-color: #ffffff;
             --card-notes-bg: rgba(255, 255, 255, 0.03);
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.4));
+            --clan-icon-filter: brightness(0) invert(1);
         }
 
         body.light-mode {
@@ -51,6 +52,7 @@
             --card-title-color: #111115;
             --card-notes-bg: #f9f8f5;
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.5));
+            --clan-icon-filter: none;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -83,6 +85,21 @@
             border-radius: 8px;
             text-align: center;
         }
+
+        .header-logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .header-ank-logo, .header-main-logo {
+            filter: var(--logo-filter);
+            object-fit: contain;
+        }
+        .header-ank-logo { height: 55px; width: auto; }
+        .header-main-logo { height: 95px; max-width: 85vw; width: auto; }
 
         h1.cabecera-principal {
             font-family: 'Cinzel', serif;
@@ -233,15 +250,19 @@
         }
         .floating-action-btn:hover { transform: translateY(-3px); background-color: var(--accent-crimson); }
 
-        <footer> { text-align: center; padding: 30px 20px; border-top: 1px solid var(--card-border); margin-top: 50px; }
+        footer { text-align: center; padding: 30px 20px; border-top: 1px solid var(--card-border); margin-top: 50px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
+        <div class="header-logos">
+            <img src="./iconos/VTM-Ank.png" class="header-ank-logo" alt="Ankh VTM">
+            <img src="./iconos/VTM-Logo-Largo.png" class="header-main-logo" alt="Vampiro La Mascarada">
+        </div>
         <div class="header-text">
-            <h1 class="cabecera-principal">Crónica de Vampiro — Chicago Nocturno</h1>
+            <h1 class="cabecera-principal">Chat y Refugio — Chicago Nocturno</h1>
         </div>
     </header>
 
@@ -290,8 +311,14 @@
     </div>
 
     <footer>
-        <div style="font-size: 0.85rem; color: var(--text-muted);">
-            Vampiro: La Mascarada (5ª Edición) — Sistema de Chat Asincrónico
+        <div style="max-width: 850px; margin: 0 auto; display: flex; align-items: center; gap: 20px; text-align: left; justify-content: center; flex-wrap: wrap;">
+            <div>
+                <img src="./iconos/darkpack_logo2.webp" alt="Dark Pack Logo" style="max-height: 65px; width: auto;" class="darkpack-logo">
+            </div>
+            <div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 4px;">Ayudas de Juego - Vampiro: La Mascarada (5ª Edición)</div>
+                <p style="margin-bottom: 0; font-size: 0.85rem; color: var(--text-muted);">Consigue los libros oficiales en <a href="https://www.nosolorol.com" target="_blank" style="color: var(--accent-gold);">Nosolorol</a>.</p>
+            </div>
         </div>
     </footer>
 </div>
@@ -311,6 +338,7 @@
 
 <!-- BOTONES FLOTANTES -->
 <div class="floating-btn-container">
+    <a href="https://werkstoff747.github.io/ViernesROL/chicago_nocturno/" class="floating-action-btn" title="Ir al Menú Principal"><i class="fa-solid fa-house"></i></a>
     <button class="floating-action-btn theme-toggle-btn" title="Cambiar tema"><i class="fa-solid fa-moon"></i></button>
 </div>
 
@@ -357,7 +385,6 @@
             alert("Introduce un código.");
             return;
         }
-        // Aquí conectaremos la validación con Firebase en el futuro
         alert(`Código aceptado para ${personajeSeleccionado}. Abriendo chat privado...`);
         cerrarModalCodigo();
     }
