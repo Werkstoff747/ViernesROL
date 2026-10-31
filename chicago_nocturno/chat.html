@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crónica de Vampiro - Chat Privado</title>
+
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
+    
+    <!-- FUENTES OFICIALES V5 (Google Fonts: Cinzel) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f12;
+            --card-bg: #18181c;
+            --card-border: #2a2a32;
+            --accent-red: #8b0000;
+            --accent-crimson: #c92a2a;
+            --accent-gold: #c5a059;
+            --text-main: #e1e1e6;
+            --text-muted: #a0a0b0;
+            --tag-bg: #25252e;
+            --input-bg: #0f0f12;
+            --header-bg: linear-gradient(180deg, rgba(139,0,0,0.3) 0%, rgba(15,15,18,0) 100%);
+            --header-border: #8b0000;
+            --card-title-color: #ffffff;
+            --card-notes-bg: rgba(255, 255, 255, 0.03);
+            --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.4));
+        }
+
+        body.light-mode {
+            --bg-color: #a8a7a4;
+            --card-bg: #ffffff;
+            --card-border: #bcaba0;
+            --accent-red: #8b0000;
+            --accent-crimson: #c92a2a;
+            --accent-gold: #8d6722;
+            --text-main: #1f1f22;
+            --text-muted: #555459;
+            --tag-bg: #f2f0eb;
+            --input-bg: #ffffff;            
+            --header-bg: #2b0408;
+            --header-border: #7a0000;
+            --card-title-color: #111115;
+            --card-notes-bg: #f9f8f5;
+            --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.5));
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 20px 20px 20px;
+            border-bottom: 2px solid var(--header-border);
+            margin-bottom: 25px;
+            background: var(--header-bg);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        h1.cabecera-principal {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.35rem;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* FLOTANTES */
+        .floating-btn-container {
+            position: fixed; bottom: 25px; right: 25px;
+            display: flex; flex-direction: column; gap: 12px; z-index: 9999;
+        }
+
+        .floating-action-btn, .scroll-top-btn {
+            width: 45px; height: 45px; border-radius: 50%;
+            background-color: var(--accent-red); color: #fff;
+            border: 1px solid var(--accent-crimson); font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .floating-action-btn:hover, .scroll-top-btn:hover {
+            transform: translateY(-3px); background-color: var(--accent-crimson);
+        }
+
+        .scroll-top-btn { opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+        .scroll-top-btn.show { opacity: 1; visibility: visible; }
+
+        <footer> { text-align: center; padding: 30px 20px; border-top: 1px solid var(--card-border); margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-text">
+            <h1 class="cabecera-principal">Crónica de Vampiro — Chat y Refugio</h1>
+        </div>
+    </header>
+
+    <!-- Di body content di chat an di characters sidebar go come hia for next step -->
+    <main style="display: flex; gap: 20px; min-height: 400px;">
+        <div style="flex: 3; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px;">
+            <h3 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px;">Canal General</h3>
+            <p style="color: var(--text-muted);">Di general chat area go dey hia...</p>
+        </div>
+        <div style="flex: 1; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px;">
+            <h3 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px;">Personajes</h3>
+            <p style="color: var(--text-muted);">Di characters list for private chat go dey hia...</p>
+        </div>
+    </main>
+
+    <footer>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+            Vampiro: La Mascarada — By-Night Chat System
+        </div>
+    </footer>
+</div>
+
+<!-- BOTONES FLOTANTES -->
+<div class="floating-btn-container">
+    <button class="floating-action-btn theme-toggle-btn" title="Cambiar tema"><i class="fa-solid fa-moon"></i></button>
+</div>
+
+<script>
+    const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
+
+    function actualizarIconoTema() {
+        const esClaro = document.body.classList.contains("light-mode");
+        themeToggleBtns.forEach(btn => {
+            btn.innerHTML = esClaro ? '<i class="fa-regular fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('vtm-theme');
+        if (savedTheme === 'light') document.body.classList.add('light-mode');
+        actualizarIconoTema();
+    }
+
+    themeToggleBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.body.classList.toggle("light-mode");
+            localStorage.setItem('vtm-theme', document.body.classList.contains("light-mode") ? 'light' : 'dark');
+            actualizarIconoTema();
+        });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+    });
+</script>
+
+</body>
+</html>
