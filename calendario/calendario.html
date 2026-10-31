@@ -502,10 +502,10 @@
 
                 if (esPasada) {
                     contadorHistorico++;
-                    htmlHistorico += cardHTML;
+                    htmlHistorico = cardHTML + htmlHistorico; // <-- Orden inverso para el histórico (más recientes arriba)
                 } else {
                     contadorProximas++;
-                    htmlProximas += cardHTML;
+                    htmlProximas += cardHTML; // <-- Orden cronológico normal para las próximas
                 }
             });
 
