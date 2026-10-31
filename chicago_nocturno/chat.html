@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crónica de Vampiro - Chat Privado</title>
+    <title>Crónica de Vampiro - Chat Privado y Refugio</title>
 
     <!-- FAVICON -->
     <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
@@ -53,11 +53,7 @@
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.5));
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
@@ -72,11 +68,7 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .container { max-width: 1300px; margin: 0 auto; width: 100%; }
 
         header {
             position: relative;
@@ -101,13 +93,137 @@
             text-transform: uppercase;
         }
 
+        /* LAYOUT PRINCIPAL: CANAL GENERAL + LATERAL DE PERSONAJES */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+            min-height: 600px;
+        }
+
+        @media (max-width: 850px) {
+            .chat-layout { grid-template-columns: 1fr; }
+        }
+
+        .chat-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 8px;
+        }
+
+        /* ZONA DE MENSAJES */
+        .messages-container {
+            flex-grow: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 450px;
+            margin-bottom: 15px;
+        }
+
+        .chat-input-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-box input {
+            flex-grow: 1;
+            padding: 10px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            background: var(--accent-red);
+            color: #fff;
+            border: 1px solid var(--accent-crimson);
+            padding: 0 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+        }
+
+        /* LISTA DE PERSONAJES EN EL LATERAL */
+        .character-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .character-item {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .character-item:hover {
+            border-color: var(--accent-gold);
+            background: rgba(197, 160, 89, 0.05);
+        }
+
+        .character-name {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--card-title-color);
+        }
+
+        .character-clan {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* MODALES (PARA EL CÓDIGO Y EL POP-UP DEL CHAT PRIVADO) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 10000;
+        }
+        .modal-content {
+            background: var(--card-bg); border: 2px solid var(--accent-gold);
+            padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; text-align: center;
+        }
+        .modal-content h3 { font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px; }
+        .modal-content input {
+            width: 100%; padding: 10px; background: var(--input-bg);
+            border: 1px solid var(--card-border); color: var(--text-main); border-radius: 5px; text-align: center; margin-bottom: 15px; outline: none;
+        }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .modal-btn { padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; border: none; }
+        .modal-btn-confirm { background: var(--accent-red); color: #fff; border: 1px solid var(--accent-crimson); }
+        .modal-btn-cancel { background: var(--tag-bg); color: var(--text-muted); border: 1px solid var(--card-border); }
+
         /* FLOTANTES */
         .floating-btn-container {
             position: fixed; bottom: 25px; right: 25px;
             display: flex; flex-direction: column; gap: 12px; z-index: 9999;
         }
-
-        .floating-action-btn, .scroll-top-btn {
+        .floating-action-btn {
             width: 45px; height: 45px; border-radius: 50%;
             background-color: var(--accent-red); color: #fff;
             border: 1px solid var(--accent-crimson); font-size: 1.1rem;
@@ -115,13 +231,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5); text-decoration: none;
             transition: transform 0.2s;
         }
-
-        .floating-action-btn:hover, .scroll-top-btn:hover {
-            transform: translateY(-3px); background-color: var(--accent-crimson);
-        }
-
-        .scroll-top-btn { opacity: 0; visibility: hidden; transition: opacity 0.3s; }
-        .scroll-top-btn.show { opacity: 1; visibility: visible; }
+        .floating-action-btn:hover { transform: translateY(-3px); background-color: var(--accent-crimson); }
 
         <footer> { text-align: center; padding: 30px 20px; border-top: 1px solid var(--card-border); margin-top: 50px; }
     </style>
@@ -131,27 +241,72 @@
 <div class="container">
     <header>
         <div class="header-text">
-            <h1 class="cabecera-principal">Crónica de Vampiro — Chat y Refugio</h1>
+            <h1 class="cabecera-principal">Crónica de Vampiro — Chicago Nocturno</h1>
         </div>
     </header>
 
-    <!-- Di body content di chat an di characters sidebar go come hia for next step -->
-    <main style="display: flex; gap: 20px; min-height: 400px;">
-        <div style="flex: 3; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px;">
-            <h3 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px;">Canal General</h3>
-            <p style="color: var(--text-muted);">Di general chat area go dey hia...</p>
+    <!-- CUERPO PRINCIPAL: CHAT GENERAL + LATERAL -->
+    <div class="chat-layout">
+        <!-- CANAL GENERAL -->
+        <div class="chat-panel">
+            <div>
+                <div class="panel-title"><i class="fa-solid fa-comments"></i> Canal General de la Crónica</div>
+                <div class="messages-container" id="generalMessages">
+                    <p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Cargando mensajes del refugio...</p>
+                </div>
+            </div>
+            <div class="chat-input-box">
+                <input type="text" id="generalInput" placeholder="Escribe un mensaje al grupo...">
+                <button class="chat-send-btn" onclick="enviarMensajeGeneral()">Enviar</button>
+            </div>
         </div>
-        <div style="flex: 1; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px;">
-            <h3 style="font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px;">Personajes</h3>
-            <p style="color: var(--text-muted);">Di characters list for private chat go dey hia...</p>
+
+        <!-- LATERAL DE PERSONAJES (ACCESO PRIVADO) -->
+        <div class="chat-panel">
+            <div>
+                <div class="panel-title"><i class="fa-solid fa-user-secret"></i> Vástagos y Secretos</div>
+                <div class="character-list" id="characterList">
+                    <!-- Aquí se cargarán dinámicamente los personajes de la crónica -->
+                    <div class="character-item" onclick="solicitarCodigo('Julian')">
+                        <div>
+                            <div class="character-name">Julian Vance</div>
+                            <div class="character-clan">Ventrue</div>
+                        </div>
+                        <i class="fa-solid fa-lock" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
+                    </div>
+                    <div class="character-item" onclick="solicitarCodigo('Maeve')">
+                        <div>
+                            <div class="character-name">Maeve</div>
+                            <div class="character-clan">Nosferatu</div>
+                        </div>
+                        <i class="fa-solid fa-lock" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px;">
+                Pulsa sobre un personaje e introduce su código secreto para abrir su canal privado con el Narrador.
+            </div>
         </div>
-    </main>
+    </div>
 
     <footer>
         <div style="font-size: 0.85rem; color: var(--text-muted);">
-            Vampiro: La Mascarada — By-Night Chat System
+            Vampiro: La Mascarada (5ª Edición) — Sistema de Chat Asincrónico
         </div>
     </footer>
+</div>
+
+<!-- MODAL PARA PEDIR EL CÓDIGO SECRETO DEL PERSONAJE -->
+<div id="codeModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modalCharacterTitle">Acceso Privado</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Introduce el código o frase secreta de este personaje:</p>
+        <input type="password" id="characterCodeInput" placeholder="Código secreto...">
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-confirm" onclick="verificarCodigoPersonaje()">Entrar al Chat</button>
+            <button class="modal-btn modal-btn-cancel" onclick="cerrarModalCodigo()">Cancelar</button>
+        </div>
+    </div>
 </div>
 
 <!-- BOTONES FLOTANTES -->
@@ -161,6 +316,7 @@
 
 <script>
     const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
+    let personajeSeleccionado = null;
 
     function actualizarIconoTema() {
         const esClaro = document.body.classList.contains("light-mode");
@@ -182,6 +338,36 @@
             actualizarIconoTema();
         });
     });
+
+    function solicitarCodigo(nombrePersonaje) {
+        personajeSeleccionado = nombrePersonaje;
+        document.getElementById('modalCharacterTitle').textContent = `Acceso: ${nombrePersonaje}`;
+        document.getElementById('characterCodeInput').value = '';
+        document.getElementById('codeModal').style.display = 'flex';
+        document.getElementById('characterCodeInput').focus();
+    }
+
+    function cerrarModalCodigo() {
+        document.getElementById('codeModal').style.display = 'none';
+    }
+
+    function verificarCodigoPersonaje() {
+        const codigo = document.getElementById('characterCodeInput').value.trim();
+        if (!codigo) {
+            alert("Introduce un código.");
+            return;
+        }
+        // Aquí conectaremos la validación con Firebase en el futuro
+        alert(`Código aceptado para ${personajeSeleccionado}. Abriendo chat privado...`);
+        cerrarModalCodigo();
+    }
+
+    function enviarMensajeGeneral() {
+        const texto = document.getElementById('generalInput').value.trim();
+        if(!texto) return;
+        alert(`Mensaje enviado al canal general: "${texto}"`);
+        document.getElementById('generalInput').value = '';
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
