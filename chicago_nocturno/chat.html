@@ -132,8 +132,36 @@
             color: var(--accent-gold);
             font-size: 1.1rem;
             margin-bottom: 15px;
-            border-bottom: 1px solid var(--card-border);
+            border-bottom: 1px dashed var(--card-border);
             padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .chat-tab {
+            flex: 1;
+            padding: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .chat-tab.active {
+            background: rgba(197, 160, 89, 0.15);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
         }
 
         .messages-container {
@@ -143,12 +171,16 @@
             border-radius: 6px;
             padding: 15px;
             overflow-y: auto;
-            max-height: 450px;
+            max-height: 400px;
             margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .chat-input-box { display: flex; gap: 10px; }
-        .chat-input-box input {
+        .chat-input-box { display: flex; gap: 10px; flex-direction: column; }
+        .chat-input-row { display: flex; gap: 10px; width: 100%; }
+        .chat-input-row input {
             flex-grow: 1;
             padding: 10px 12px;
             background: var(--input-bg);
@@ -201,7 +233,7 @@
             padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; text-align: center;
         }
         .modal-content h3 { font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px; }
-        .modal-content input {
+        .modal-content input, .modal-content select {
             width: 100%; padding: 10px; background: var(--input-bg);
             border: 1px solid var(--card-border); color: var(--text-main); border-radius: 5px; text-align: center; margin-bottom: 15px; outline: none;
         }
@@ -241,20 +273,42 @@
     </header>
 
     <div class="chat-layout">
-        <!-- CANAL GENERAL -->
+        <!-- CANALES Y MENSAJES -->
         <div class="chat-panel">
             <div>
                 <div class="panel-title">
-                    <i class="fa-solid fa-comments"></i> Canal General de la Crónica 
-                    <span id="identidadActualBadge" style="font-size: 0.75rem; float: right; color: var(--accent-gold); font-weight: normal; margin-top: 3px;">(Identifícate a la der.)</span>
+                    <div><i class="fa-solid fa-comments"></i> Refugio de la Crónica</div>
+                    <span id="identidadActualBadge" style="font-size: 0.75rem; color: var(--accent-gold); font-weight: normal;">(Sin identificar)</span>
                 </div>
+
+                <!-- Pestañas de Canales -->
+                <div class="chat-tabs">
+                    <button class="chat-tab active" id="tabGeneral" onclick="cambiarCanal('general')"><i class="fa-solid fa-globe"></i> Canal General</button>
+                    <button class="chat-tab" id="tabPrivado" onclick="cambiarCanal('privado')"><i class="fa-solid fa-user-secret"></i> Susurros / Secretos</button>
+                </div>
+
+                <!-- Contenedor Mensajes General -->
                 <div class="messages-container" id="generalMessages">
                     <p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Cargando mensajes del refugio...</p>
                 </div>
+
+                <!-- Contenedor Mensajes Privados -->
+                <div class="messages-container" id="privateMessages" style="display: none;">
+                    <p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Selecciona un chat privado...</p>
+                </div>
             </div>
+
+            <!-- Caja de entrada -->
             <div class="chat-input-box">
-                <input type="text" id="generalInput" placeholder="Selecciona tu personaje a la derecha para hablar..." onkeypress="if(event.key === 'Enter') enviarMensajeGeneral()">
-                <button class="chat-send-btn" onclick="enviarMensajeGeneral()">Enviar</button>
+                <div id="stSelectReceiverBox" style="display: none; margin-bottom: 5px;">
+                    <select id="stReceiverSelect" style="width: 100%; padding: 6px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 4px; font-size: 0.85rem;" onchange="actualizarDestinatarioST()">
+                        <option value="">-- Selecciona un jugador para susurrar --</option>
+                    </select>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="generalInput" placeholder="Identifícate a la derecha para poder hablar..." onkeypress="if(event.key === 'Enter') enviarMensajeActual()">
+                    <button class="chat-send-btn" onclick="enviarMensajeActual()">Enviar</button>
+                </div>
             </div>
         </div>
 
@@ -333,7 +387,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    // 1. TUS CLAVES ORIGINALES DE VIERNESROL
     const firebaseConfig = {
         apiKey: "AIzaSyAsf5dbiRcyO13C8jbN5GSafraOZLV3W6A",
         authDomain: "viernesrol-chat.firebaseapp.com",
@@ -348,7 +401,37 @@
     const db = getDatabase(app);
     const grupoActual = 'viernesrol';
 
-    // Actualizar interfaz según la identidad guardada en localStorage
+    let canalActivo = 'general'; // 'general' o 'privado'
+    let nombreNarradorActual = null;
+    let receptorPrivadoST = null;
+
+    window.cambiarCanal = function(canal) {
+        canalActivo = canal;
+        const btnGen = document.getElementById('tabGeneral');
+        const btnPriv = document.getElementById('tabPrivado');
+        const boxGen = document.getElementById('generalMessages');
+        const boxPriv = document.getElementById('privateMessages');
+        const stSelectBox = document.getElementById('stSelectReceiverBox');
+
+        if (canal === 'general') {
+            btnGen.classList.add('active');
+            btnPriv.classList.remove('active');
+            boxGen.style.display = 'flex';
+            boxPriv.style.display = 'none';
+            if (stSelectBox) stSelectBox.style.display = 'none';
+        } else {
+            btnPriv.classList.add('active');
+            btnGen.classList.remove('active');
+            boxPriv.style.display = 'flex';
+            boxGen.style.display = 'none';
+            
+            const identidad = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+            if (identidad && identidad.toLowerCase() === (nombreNarradorActual || '').toLowerCase()) {
+                if (stSelectBox) stSelectBox.style.display = 'block';
+            }
+        }
+    };
+
     function actualizarInterfazIdentidad() {
         const identidadGuardada = localStorage.getItem(`vtm-active-character-${grupoActual}`);
         const badge = document.getElementById('identidadActualBadge');
@@ -358,7 +441,7 @@
         if (identidadGuardada) {
             badge.textContent = `[Activo: ${identidadGuardada}]`;
             badge.style.color = 'var(--accent-gold)';
-            inputMsg.placeholder = `Escribe como ${identidadGuardada}...`;
+            inputMsg.placeholder = `Escribe un mensaje...`;
             infoDiv.innerHTML = `Conectado como <b>${identidadGuardada}</b>. <a href="#" onclick="cerrarSesion()" style="color: var(--accent-gold); text-decoration: underline;">Cambiar</a>`;
         } else {
             badge.textContent = '(Sin identificar)';
@@ -374,59 +457,13 @@
         location.reload();
     };
 
-    // 2. CARGAR MENSAJES EN TIEMPO REAL
-    const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
-    onValue(mensajesRef, (snapshot) => {
-        const container = document.getElementById('generalMessages');
-        container.innerHTML = '';
-        
-        if (!snapshot.exists()) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">No hay mensajes todavía en el refugio.</p>';
-            return;
-        }
-
-        const data = snapshot.val();
-        Object.values(data).forEach(msg => {
-            const msgDiv = document.createElement('div');
-            msgDiv.style.cssText = 'margin-bottom: 10px; padding: 8px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px;';
-            msgDiv.innerHTML = `
-                <div style="font-size: 0.75rem; color: var(--accent-gold); font-family: 'Cinzel', serif; font-weight: bold; margin-bottom: 2px;">${msg.autor || 'Anónimo'}</div>
-                <div style="font-size: 0.9rem; color: var(--text-main);">${msg.texto}</div>
-            `;
-            container.appendChild(msgDiv);
-        });
-        container.scrollTop = container.scrollHeight;
-    });
-
-    // 3. ENVIAR MENSAJE
-    window.enviarMensajeGeneral = function() {
-        const input = document.getElementById('generalInput');
-        const texto = input.value.trim();
-        if (!texto) return;
-
-        const autorActual = localStorage.getItem(`vtm-active-character-${grupoActual}`);
-        if (!autorActual) {
-            alert("Debes hacer clic en tu personaje en el panel derecho e introducir tu contraseña antes de escribir.");
-            return;
-        }
-
-        push(mensajesRef, {
-            autor: autorActual,
-            texto: texto,
-            timestamp: Date.now()
-        }).then(() => {
-            input.value = '';
-        }).catch((error) => {
-            console.error("Error al enviar:", error);
-            alert("No se pudo enviar el mensaje.");
-        });
-    };
-
-    // 4. CARGAR PERSONAJES DESDE FIREBASE (CON LIMPIEZA AUTOMÁTICA DE COMILLAS)
+    // 1. CARGAR PERSONAJES DESDE FIREBASE
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
+        const selectReceiver = document.getElementById('stReceiverSelect');
         listContainer.innerHTML = '';
+        if (selectReceiver) selectReceiver.innerHTML = '<option value="">-- Selecciona un jugador para susurrar --</option>';
 
         if (!snapshot.exists()) {
             listContainer.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">No hay personajes registrados.</p>';
@@ -435,11 +472,28 @@
 
         const personajes = snapshot.val();
         const identidadActiva = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+        let esNarradorActual = false;
 
         Object.entries(personajes).forEach(([key, p]) => {
             const nombreLimpio = p.nombre ? String(p.nombre).replace(/"/g, '') : '';
             const clanLimpio = p.clan ? String(p.clan).replace(/"/g, '') : 'Vástago';
             const passLimpa = p.password ? String(p.password).replace(/"/g, '') : '';
+
+            const esST = clanLimpio.toLowerCase().includes('director') || clanLimpio.toLowerCase().includes('narrador') || nombreLimpio.toLowerCase() === 'narrador';
+
+            if (esST) {
+                nombreNarradorActual = nombreLimpio;
+            } else if (selectReceiver) {
+                const opt = document.createElement('option');
+                opt.value = nombreLimpio;
+                opt.textContent = `${nombreLimpio} (${clanLimpio})`;
+                if (receptorPrivadoST === nombreLimpio) opt.selected = true;
+                selectReceiver.appendChild(opt);
+            }
+
+            if (identidadActiva === nombreLimpio && esST) {
+                esNarradorActual = true;
+            }
 
             const item = document.createElement('div');
             item.className = 'character-item';
@@ -458,7 +512,163 @@
             `;
             listContainer.appendChild(item);
         });
+
+        const stSelectBox = document.getElementById('stSelectReceiverBox');
+        if (stSelectBox) {
+            stSelectBox.style.display = (esNarradorActual && canalActivo === 'privado') ? 'block' : 'none';
+        }
     });
+
+    // 2. CARGAR MENSAJES GENERALES CON TIMESTAMP
+    const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
+    onValue(mensajesRef, (snapshot) => {
+        const container = document.getElementById('generalMessages');
+        container.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">No hay mensajes todavía en el refugio.</p>';
+            return;
+        }
+
+        const data = snapshot.val();
+        Object.values(data).forEach(msg => {
+            let fechaHoraFormateada = '';
+            if (msg.timestamp) {
+                const fecha = new Date(msg.timestamp);
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const horas = String(fecha.getHours()).padStart(2, '0');
+                const minutos = String(fecha.getMinutes()).padStart(2, '0');
+                fechaHoraFormateada = `${dia}/${mes}/${fecha.getFullYear()} a las ${horas}:${minutos}`;
+            }
+
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = 'padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px;';
+            msgDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 0.78rem; color: var(--accent-gold); font-family: 'Cinzel', serif; font-weight: bold;">${msg.autor || 'Anónimo'}</span>
+                    <span style="font-size: 0.68rem; color: var(--text-muted);">${fechaHoraFormateada}</span>
+                </div>
+                <div style="font-size: 0.9rem; color: var(--text-main);">${msg.texto}</div>
+            `;
+            container.appendChild(msgDiv);
+        });
+        container.scrollTop = container.scrollHeight;
+    });
+
+    // 3. CARGAR MENSAJES PRIVADOS (SUSURROS) CON TIMESTAMP
+    const privadosRef = ref(db, `grupos/${grupoActual}/mensajes_privados`);
+    onValue(privadosRef, (snapshot) => {
+        const container = document.getElementById('privateMessages');
+        container.innerHTML = '';
+
+        const identidadActual = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+        if (!identidadActual) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Identifícate para ver tus susurros.</p>';
+            return;
+        }
+
+        if (!snapshot.exists()) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">No hay mensajes privados todavía.</p>';
+            return;
+        }
+
+        const data = snapshot.val();
+        const esST = identidadActual.toLowerCase() === (nombreNarradorActual || '').toLowerCase();
+
+        Object.values(data).forEach(msg => {
+            let mostrar = false;
+            if (esST) {
+                if (receptorPrivadoST && (msg.remitente === receptorPrivadoST || msg.destinatario === receptorPrivadoST)) {
+                    mostrar = true;
+                }
+            } else {
+                if (msg.remitente === identidadActual || msg.destinatario === identidadActual) {
+                    mostrar = true;
+                }
+            }
+
+            if (!mostrar) return;
+
+            let fechaHoraFormateada = '';
+            if (msg.timestamp) {
+                const fecha = new Date(msg.timestamp);
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const horas = String(fecha.getHours()).padStart(2, '0');
+                const minutos = String(fecha.getMinutes()).padStart(2, '0');
+                fechaHoraFormateada = `${dia}/${mes}/${fecha.getFullYear()} a las ${horas}:${minutos}`;
+            }
+
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = 'padding: 10px 12px; background: rgba(197, 160, 89, 0.05); border: 1px solid var(--accent-gold); border-radius: 6px;';
+            msgDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 0.78rem; color: var(--accent-gold); font-family: 'Cinzel', serif; font-weight: bold;">🔒 ${msg.remitente} → ${msg.destinatario}</span>
+                    <span style="font-size: 0.68rem; color: var(--text-muted);">${fechaHoraFormateada}</span>
+                </div>
+                <div style="font-size: 0.9rem; color: var(--text-main);">${msg.texto}</div>
+            `;
+            container.appendChild(msgDiv);
+        });
+
+        if (container.innerHTML === '') {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Selecciona un interlocutor para ver los secretos.</p>';
+        }
+    });
+
+    window.actualizarDestinatarioST = function() {
+        receptorPrivadoST = document.getElementById('stReceiverSelect').value;
+    };
+
+    // 4. ENVIAR MENSAJE (GENERAL O PRIVADO)
+    window.enviarMensajeActual = function() {
+        const input = document.getElementById('generalInput');
+        const texto = input.value.trim();
+        if (!texto) return;
+
+        const autorActual = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+        if (!autorActual) {
+            alert("Debes hacer clic en tu personaje en el panel derecho e introducir tu contraseña antes de escribir.");
+            return;
+        }
+
+        if (canalActivo === 'general') {
+            push(mensajesRef, {
+                autor: autorActual,
+                texto: texto,
+                timestamp: Date.now()
+            }).then(() => {
+                input.value = '';
+            }).catch((error) => {
+                console.error("Error al enviar:", error);
+                alert("No se pudo enviar el mensaje.");
+            });
+        } else {
+            const esST = autorActual.toLowerCase() === (nombreNarradorActual || '').toLowerCase();
+            let destinatario = nombreNarradorActual;
+
+            if (esST) {
+                if (!receptorPrivadoST) {
+                    alert("Selecciona primero un jugador en el desplegable superior para enviarle el susurro.");
+                    return;
+                }
+                destinatario = receptorPrivadoST;
+            }
+
+            push(privadosRef, {
+                remitente: autorActual,
+                destinatario: destinatario,
+                texto: texto,
+                timestamp: Date.now()
+            }).then(() => {
+                input.value = '';
+            }).catch((error) => {
+                console.error("Error al enviar mensaje privado:", error);
+                alert("No se pudo enviar el susurro.");
+            });
+        }
+    };
 
     // 5. MODAL Y VALIDACIÓN
     let personajeSeleccionado = null;
