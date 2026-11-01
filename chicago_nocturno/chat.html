@@ -535,14 +535,18 @@
             // Guardar en caché el color del autor para usarlo en el chat
             mapaColoresClanes[nombreLimpio.toLowerCase()] = colorClan;
 
-            // Resolver ruta del icono del clan o narrador de forma dinámica
-            let iconoSrc = "./iconos/VTM-Ank.png";
-            if (esST) {
-                iconoSrc = "./iconos/clanes/Narrador_symbol.png";
-            } else if (clanLimpio && clanLimpio !== 'pendiente' && clanLimpio !== 'Vástago') {
-                const clanNormalizado = clanLimpio.toLowerCase().trim();
-                iconoSrc = `./iconos/clanes/${clanNormalizado}.png`;
-            }
+            // Resolver ruta del icono del clan o narrador de forma robusta
+                        let iconoSrc = "./iconos/VTM-Ank.png";
+                        if (esST) {
+                            iconoSrc = "./iconos/clanes/Narrador_symbol.png";
+                        } else if (clanLimpio && clanLimpio !== 'pendiente' && clanLimpio !== 'Vástago') {
+                            // Normalizar el nombre del clan para que coincida con el archivo (minúsculas, sin espacios extra, espacios por guiones bajos)
+                            let clanNormalizado = clanLimpio.toLowerCase().trim()
+                                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar tildes (ej: á -> a)
+                                .replace(/\s+/g, '_'); // Reemplazar espacios por guiones bajos (ej: banu haqim -> banu_haqim)
+                            
+                            iconoSrc = `./iconos/clanes/${clanNormalizado}.png`;
+                        }
 
             const item = document.createElement('div');
             item.className = 'character-item';
