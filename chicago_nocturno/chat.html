@@ -31,9 +31,7 @@
             --header-bg: linear-gradient(180deg, rgba(139,0,0,0.3) 0%, rgba(15,15,18,0) 100%);
             --header-border: #8b0000;
             --card-title-color: #ffffff;
-            --card-notes-bg: rgba(255, 255, 255, 0.03);
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.4));
-            --clan-icon-filter: brightness(0) invert(1);
         }
 
         body.light-mode {
@@ -50,9 +48,7 @@
             --header-bg: #2b0408;
             --header-border: #7a0000;
             --card-title-color: #111115;
-            --card-notes-bg: #f9f8f5;
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.5));
-            --clan-icon-filter: none;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -110,7 +106,6 @@
             text-transform: uppercase;
         }
 
-        /* LAYOUT PRINCIPAL: CANAL GENERAL + LATERAL DE PERSONAJES */
         .chat-layout {
             display: grid;
             grid-template-columns: 1fr 320px;
@@ -141,7 +136,6 @@
             padding-bottom: 8px;
         }
 
-        /* ZONA DE MENSAJES */
         .messages-container {
             flex-grow: 1;
             background: var(--input-bg);
@@ -153,11 +147,7 @@
             margin-bottom: 15px;
         }
 
-        .chat-input-box {
-            display: flex;
-            gap: 10px;
-        }
-
+        .chat-input-box { display: flex; gap: 10px; }
         .chat-input-box input {
             flex-grow: 1;
             padding: 10px 12px;
@@ -179,13 +169,7 @@
             font-weight: 700;
         }
 
-        /* LISTA DE PERSONAJES EN EL LATERAL */
-        .character-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        .character-list { display: flex; flex-direction: column; gap: 10px; }
         .character-item {
             background: var(--input-bg);
             border: 1px solid var(--card-border);
@@ -197,26 +181,17 @@
             justify-content: space-between;
             transition: all 0.2s;
         }
-
         .character-item:hover {
             border-color: var(--accent-gold);
             background: rgba(197, 160, 89, 0.05);
         }
-
-        .character-name {
-            font-family: 'Cinzel', serif;
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--card-title-color);
+        .character-item.active {
+            border-color: var(--accent-gold);
+            background: rgba(197, 160, 89, 0.12);
         }
+        .character-name { font-family: 'Cinzel', serif; font-size: 0.9rem; font-weight: 700; color: var(--card-title-color); }
+        .character-clan { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
 
-        .character-clan {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        /* MODALES (PARA EL CÓDIGO Y EL POP-UP DEL CHAT PRIVADO) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 10000;
@@ -235,7 +210,6 @@
         .modal-btn-confirm { background: var(--accent-red); color: #fff; border: 1px solid var(--accent-crimson); }
         .modal-btn-cancel { background: var(--tag-bg); color: var(--text-muted); border: 1px solid var(--card-border); }
 
-        /* FLOTANTES */
         .floating-btn-container {
             position: fixed; bottom: 25px; right: 25px;
             display: flex; flex-direction: column; gap: 12px; z-index: 9999;
@@ -262,36 +236,38 @@
             <img src="./iconos/VTM-Logo-Largo.png" class="header-main-logo" alt="Vampiro La Mascarada">
         </div>
         <div class="header-text">
-            <h1 class="cabecera-principal" id="tituloGrupo">Chat y Refugio — Chicago Nocturno</h1>
+            <h1 class="cabecera-principal" id="tituloGrupo">Chat y Refugio — ViernesROL</h1>
         </div>
     </header>
 
-    <!-- CUERPO PRINCIPAL: CHAT GENERAL + LATERAL -->
     <div class="chat-layout">
         <!-- CANAL GENERAL -->
         <div class="chat-panel">
             <div>
-                <div class="panel-title"><i class="fa-solid fa-comments"></i> Canal General de la Crónica</div>
+                <div class="panel-title">
+                    <i class="fa-solid fa-comments"></i> Canal General de la Crónica 
+                    <span id="identidadActualBadge" style="font-size: 0.75rem; float: right; color: var(--accent-gold); font-weight: normal; margin-top: 3px;">(Identifícate a la der.)</span>
+                </div>
                 <div class="messages-container" id="generalMessages">
                     <p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Cargando mensajes del refugio...</p>
                 </div>
             </div>
             <div class="chat-input-box">
-                <input type="text" id="generalInput" placeholder="Escribe un mensaje al grupo..." onkeypress="if(event.key === 'Enter') enviarMensajeGeneral()">
+                <input type="text" id="generalInput" placeholder="Selecciona tu personaje a la derecha para hablar..." onkeypress="if(event.key === 'Enter') enviarMensajeGeneral()">
                 <button class="chat-send-btn" onclick="enviarMensajeGeneral()">Enviar</button>
             </div>
         </div>
 
-        <!-- LATERAL DE PERSONAJES (ACCESO PRIVADO) -->
+        <!-- LATERAL DE PERSONAJES -->
         <div class="chat-panel">
             <div>
                 <div class="panel-title"><i class="fa-solid fa-user-secret"></i> Vástagos y Secretos</div>
                 <div class="character-list" id="characterList">
-                    <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Cargando personajes...</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Cargando lista...</p>
                 </div>
             </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px;">
-                Pulsa sobre un personaje e introduce su código secreto para abrir su canal privado con el Narrador.
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px;" id="infoIdentidad">
+                Haz clic sobre tu nombre e introduce tu contraseña para activar tu identidad.
             </div>
         </div>
     </div>
@@ -309,42 +285,39 @@
     </footer>
 </div>
 
-<!-- MODAL PARA PEDIR EL CÓDIGO SECRETO DEL PERSONAJE -->
+<!-- MODAL CÓDIGO -->
 <div id="codeModal" class="modal-overlay">
     <div class="modal-content">
         <h3 id="modalCharacterTitle">Acceso Privado</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Introduce el código o frase secreta de este personaje:</p>
-        <input type="password" id="characterCodeInput" placeholder="Código secreto..." onkeypress="if(event.key === 'Enter') verificarCodigoPersonaje()">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Introduce tu contraseña secreta:</p>
+        <input type="password" id="characterCodeInput" placeholder="Contraseña..." onkeypress="if(event.key === 'Enter') verificarCodigoPersonaje()">
         <div class="modal-buttons">
-            <button class="modal-btn modal-btn-confirm" onclick="verificarCodigoPersonaje()">Entrar al Chat</button>
+            <button class="modal-btn modal-btn-confirm" onclick="verificarCodigoPersonaje()">Entrar</button>
             <button class="modal-btn modal-btn-cancel" onclick="cerrarModalCodigo()">Cancelar</button>
         </div>
     </div>
 </div>
 
-<!-- BOTONES FLOTANTES -->
+<!-- FLOTANTES -->
 <div class="floating-btn-container">
-    <a href="https://werkstoff747.github.io/ViernesROL/chicago_nocturno/" class="floating-action-btn" title="Ir al Menú Principal"><i class="fa-solid fa-house"></i></a>
+    <a href="https://werkstoff747.github.io/ViernesROL/index.html" class="floating-action-btn" title="Ir al Menú Principal"><i class="fa-solid fa-house"></i></a>
     <button class="floating-action-btn theme-toggle-btn" title="Cambiar tema"><i class="fa-solid fa-moon"></i></button>
 </div>
 
-<!-- SCRIPTS DE CONFIGURACIÓN Y TEMA -->
+<!-- TEMA -->
 <script>
     const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
-
     function actualizarIconoTema() {
         const esClaro = document.body.classList.contains("light-mode");
         themeToggleBtns.forEach(btn => {
             btn.innerHTML = esClaro ? '<i class="fa-regular fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         });
     }
-
     function initTheme() {
         const savedTheme = localStorage.getItem('vtm-theme');
         if (savedTheme === 'light') document.body.classList.add('light-mode');
         actualizarIconoTema();
     }
-
     themeToggleBtns.forEach(btn => {
         btn.addEventListener("click", () => {
             document.body.classList.toggle("light-mode");
@@ -352,39 +325,57 @@
             actualizarIconoTema();
         });
     });
-
-    window.addEventListener('DOMContentLoaded', () => {
-        initTheme();
-    });
+    window.addEventListener('DOMContentLoaded', () => initTheme());
 </script>
 
-<!-- IMPORTAR Y CONECTAR FIREBASE REALTIME DATABASE -->
+<!-- FIREBASE Y LÓGICA DE USUARIO -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    // Configuración de tu base de datos de Firebase
+    // 1. TUS CLAVES REALES DE FIREBASE
     const firebaseConfig = {
-        apiKey: "TU_API_KEY",
-        authDomain: "drrol-chat.firebaseapp.com",
-        databaseURL: "https://drrol-chat-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "drrol-chat",
-        storageBucket: "drrol-chat.appspot.com",
-        messagingSenderId: "TID",
-        appId: "APP_ID"
+        apiKey: "AIzaSyAsf5dbiRcyO13C8jbN5GSafraOZLV3W6A",
+        authDomain: "viernesrol-chat.firebaseapp.com",
+        projectId: "viernesrol-chat",
+        storageBucket: "viernesrol-chat.appspot.com",
+        messagingSenderId: "773718239053",
+        appId: "1:773718239053:web:db3443cea04208ab1e7904",
+        databaseURL: "https://viernesrol-chat-default-rtdb.europe-west1.firebasedatabase.app"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const grupoActual = 'viernesrol';
 
-    // Detección de grupo por URL (por defecto 'viernesrol')
-    const urlParams = new URLSearchParams(window.location.search);
-    const grupoActual = urlParams.get('grupo') || 'viernesrol';
-    document.getElementById('tituloGrupo').textContent = `Chat y Refugio — ViernesROL (${grupoActual.toUpperCase()})`;
+    // Actualizar interfaz según la identidad guardada en localStorage
+    function actualizarInterfazIdentidad() {
+        const identidadGuardada = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+        const badge = document.getElementById('identidadActualBadge');
+        const inputMsg = document.getElementById('generalInput');
+        const infoDiv = document.getElementById('infoIdentidad');
 
-    // 1. CARGAR Y ESCUCHAR MENSAJES DEL CANAL GENERAL EN TIEMPO REAL
+        if (identidadGuardada) {
+            badge.textContent = `[Activo: ${identidadGuardada}]`;
+            badge.style.color = 'var(--accent-gold)';
+            inputMsg.placeholder = `Escribe como ${identidadGuardada}...`;
+            infoDiv.innerHTML = `Conectado como <b>${identidadGuardada}</b>. <a href="#" onclick="cerrarSesion()" style="color: var(--accent-gold); text-decoration: underline;">Cambiar</a>`;
+        } else {
+            badge.textContent = '(Sin identificar)';
+            badge.style.color = 'var(--accent-crimson)';
+            inputMsg.placeholder = 'Identifícate a la derecha para poder hablar...';
+            infoDiv.textContent = 'Haz clic sobre tu nombre e introduce tu contraseña.';
+        }
+    }
+
+    window.cerrarSesion = function() {
+        localStorage.removeItem(`vtm-active-character-${grupoActual}`);
+        actualizarInterfazIdentidad();
+        location.reload();
+    };
+
+    // 2. CARGAR MENSAJES EN TIEMPO REAL
     const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
-    
     onValue(mensajesRef, (snapshot) => {
         const container = document.getElementById('generalMessages');
         container.innerHTML = '';
@@ -407,13 +398,17 @@
         container.scrollTop = container.scrollHeight;
     });
 
-    // 2. ENVIAR MENSAJE AL CANAL GENERAL
+    // 3. ENVIAR MENSAJE
     window.enviarMensajeGeneral = function() {
         const input = document.getElementById('generalInput');
         const texto = input.value.trim();
         if (!texto) return;
 
-        const autorActual = localStorage.getItem(`vtm-active-character-${grupoActual}`) || "Narrador";
+        const autorActual = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+        if (!autorActual) {
+            alert("Debes hacer clic en tu personaje en el panel derecho e introducir tu contraseña antes de escribir.");
+            return;
+        }
 
         push(mensajesRef, {
             autor: autorActual,
@@ -422,27 +417,32 @@
         }).then(() => {
             input.value = '';
         }).catch((error) => {
-            console.error("Error al enviar mensaje:", error);
+            console.error("Error al enviar:", error);
             alert("No se pudo enviar el mensaje.");
         });
     };
 
-    // 3. CARGAR PERSONAJES DESDE FIREBASE EN EL PANEL LATERAL
+    // 4. CARGAR PERSONAJES DESDE FIREBASE
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
-
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
         listContainer.innerHTML = '';
 
         if (!snapshot.exists()) {
-            listContainer.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">No hay personajes en Firebase para este grupo.</p>';
+            listContainer.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">No hay personajes registrados.</p>';
             return;
         }
 
         const personajes = snapshot.val();
+        const identidadActiva = localStorage.getItem(`vtm-active-character-${grupoActual}`);
+
         Object.entries(personajes).forEach(([key, p]) => {
             const item = document.createElement('div');
             item.className = 'character-item';
+            if (identidadActiva === p.nombre) {
+                item.classList.add('active');
+            }
+            
             item.onclick = () => solicitarCodigo(p.nombre, p.password);
             
             item.innerHTML = `
@@ -450,13 +450,13 @@
                     <div class="character-name">${p.nombre}</div>
                     <div class="character-clan">${p.clan || 'Vástago'}</div>
                 </div>
-                <i class="fa-solid fa-lock" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
+                <i class="fa-solid ${identidadActiva === p.nombre ? 'fa-unlock' : 'fa-lock'}" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
             `;
             listContainer.appendChild(item);
         });
     });
 
-    // 4. LÓGICA DE VALIDACIÓN DE CONTRASEÑA DE PERSONAJE
+    // 5. MODAL Y VALIDACIÓN
     let personajeSeleccionado = null;
     let passwordEsperada = null;
 
@@ -477,12 +477,18 @@
         const ingresada = document.getElementById('characterCodeInput').value.trim();
         if (ingresada === passwordEsperada) {
             localStorage.setItem(`vtm-active-character-${grupoActual}`, personajeSeleccionado);
-            alert(`¡Identidad verificada! Ahora hablas en el chat general como ${personajeSeleccionado}.`);
+            alert(`¡Identidad verificada! Ahora actúas como ${personajeSeleccionado}.`);
             cerrarModalCodigo();
+            actualizarInterfazIdentidad();
+            location.reload(); // Recarga para actualizar estilos y estados activos
         } else {
-            alert("Contraseña incorrecta. Introduce la clave correcta.");
+            alert("Contraseña incorrecta.");
         }
     };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        actualizarInterfazIdentidad();
+    });
 </script>
 
 </body>
