@@ -262,7 +262,7 @@
             <img src="./iconos/VTM-Logo-Largo.png" class="header-main-logo" alt="Vampiro La Mascarada">
         </div>
         <div class="header-text">
-            <h1 class="cabecera-principal">Chat y Refugio — Chicago Nocturno</h1>
+            <h1 class="cabecera-principal" id="tituloGrupo">Chat y Refugio — Chicago Nocturno</h1>
         </div>
     </header>
 
@@ -277,7 +277,7 @@
                 </div>
             </div>
             <div class="chat-input-box">
-                <input type="text" id="generalInput" placeholder="Escribe un mensaje al grupo...">
+                <input type="text" id="generalInput" placeholder="Escribe un mensaje al grupo..." onkeypress="if(event.key === 'Enter') enviarMensajeGeneral()">
                 <button class="chat-send-btn" onclick="enviarMensajeGeneral()">Enviar</button>
             </div>
         </div>
@@ -287,21 +287,7 @@
             <div>
                 <div class="panel-title"><i class="fa-solid fa-user-secret"></i> Vástagos y Secretos</div>
                 <div class="character-list" id="characterList">
-                    <!-- Aquí se cargarán dinámicamente los personajes de la crónica -->
-                    <div class="character-item" onclick="solicitarCodigo('Julian')">
-                        <div>
-                            <div class="character-name">Julian Vance</div>
-                            <div class="character-clan">Ventrue</div>
-                        </div>
-                        <i class="fa-solid fa-lock" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
-                    </div>
-                    <div class="character-item" onclick="solicitarCodigo('Maeve')">
-                        <div>
-                            <div class="character-name">Maeve</div>
-                            <div class="character-clan">Nosferatu</div>
-                        </div>
-                        <i class="fa-solid fa-lock" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
-                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Cargando personajes...</p>
                 </div>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px;">
@@ -328,7 +314,7 @@
     <div class="modal-content">
         <h3 id="modalCharacterTitle">Acceso Privado</h3>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Introduce el código o frase secreta de este personaje:</p>
-        <input type="password" id="characterCodeInput" placeholder="Código secreto...">
+        <input type="password" id="characterCodeInput" placeholder="Código secreto..." onkeypress="if(event.key === 'Enter') verificarCodigoPersonaje()">
         <div class="modal-buttons">
             <button class="modal-btn modal-btn-confirm" onclick="verificarCodigoPersonaje()">Entrar al Chat</button>
             <button class="modal-btn modal-btn-cancel" onclick="cerrarModalCodigo()">Cancelar</button>
@@ -342,9 +328,9 @@
     <button class="floating-action-btn theme-toggle-btn" title="Cambiar tema"><i class="fa-solid fa-moon"></i></button>
 </div>
 
+<!-- SCRIPTS DE CONFIGURACIÓN Y TEMA -->
 <script>
     const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
-    let personajeSeleccionado = null;
 
     function actualizarIconoTema() {
         const esClaro = document.body.classList.contains("light-mode");
@@ -367,38 +353,136 @@
         });
     });
 
-    function solicitarCodigo(nombrePersonaje) {
-        personajeSeleccionado = nombrePersonaje;
-        document.getElementById('modalCharacterTitle').textContent = `Acceso: ${nombrePersonaje}`;
-        document.getElementById('characterCodeInput').value = '';
-        document.getElementById('codeModal').style.display = 'flex';
-        document.getElementById('characterCodeInput').focus();
-    }
-
-    function cerrarModalCodigo() {
-        document.getElementById('codeModal').style.display = 'none';
-    }
-
-    function verificarCodigoPersonaje() {
-        const codigo = document.getElementById('characterCodeInput').value.trim();
-        if (!codigo) {
-            alert("Introduce un código.");
-            return;
-        }
-        alert(`Código aceptado para ${personajeSeleccionado}. Abriendo chat privado...`);
-        cerrarModalCodigo();
-    }
-
-    function enviarMensajeGeneral() {
-        const texto = document.getElementById('generalInput').value.trim();
-        if(!texto) return;
-        alert(`Mensaje enviado al canal general: "${texto}"`);
-        document.getElementById('generalInput').value = '';
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
     });
+</script>
+
+<!-- IMPORTAR Y CONECTAR FIREBASE REALTIME DATABASE -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // Configuración de tu base de datos de Firebase
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "drrol-chat.firebaseapp.com",
+        databaseURL: "https://drrol-chat-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "drrol-chat",
+        storageBucket: "drrol-chat.appspot.com",
+        messagingSenderId: "TID",
+        appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Detección de grupo por URL (por defecto 'viernesrol')
+    const urlParams = new URLSearchParams(window.location.search);
+    const grupoActual = urlParams.get('grupo') || 'viernesrol';
+    document.getElementById('tituloGrupo').textContent = `Chat y Refugio — ViernesROL (${grupoActual.toUpperCase()})`;
+
+    // 1. CARGAR Y ESCUCHAR MENSAJES DEL CANAL GENERAL EN TIEMPO REAL
+    const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
+    
+    onValue(mensajesRef, (snapshot) => {
+        const container = document.getElementById('generalMessages');
+        container.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">No hay mensajes todavía en el refugio.</p>';
+            return;
+        }
+
+        const data = snapshot.val();
+        Object.values(data).forEach(msg => {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = 'margin-bottom: 10px; padding: 8px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px;';
+            msgDiv.innerHTML = `
+                <div style="font-size: 0.75rem; color: var(--accent-gold); font-family: 'Cinzel', serif; font-weight: bold; margin-bottom: 2px;">${msg.autor || 'Anónimo'}</div>
+                <div style="font-size: 0.9rem; color: var(--text-main);">${msg.texto}</div>
+            `;
+            container.appendChild(msgDiv);
+        });
+        container.scrollTop = container.scrollHeight;
+    });
+
+    // 2. ENVIAR MENSAJE AL CANAL GENERAL
+    window.enviarMensajeGeneral = function() {
+        const input = document.getElementById('generalInput');
+        const texto = input.value.trim();
+        if (!texto) return;
+
+        const autorActual = localStorage.getItem(`vtm-active-character-${grupoActual}`) || "Narrador";
+
+        push(mensajesRef, {
+            autor: autorActual,
+            texto: texto,
+            timestamp: Date.now()
+        }).then(() => {
+            input.value = '';
+        }).catch((error) => {
+            console.error("Error al enviar mensaje:", error);
+            alert("No se pudo enviar el mensaje.");
+        });
+    };
+
+    // 3. CARGAR PERSONAJES DESDE FIREBASE EN EL PANEL LATERAL
+    const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
+
+    onValue(personajesRef, (snapshot) => {
+        const listContainer = document.getElementById('characterList');
+        listContainer.innerHTML = '';
+
+        if (!snapshot.exists()) {
+            listContainer.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">No hay personajes en Firebase para este grupo.</p>';
+            return;
+        }
+
+        const personajes = snapshot.val();
+        Object.entries(personajes).forEach(([key, p]) => {
+            const item = document.createElement('div');
+            item.className = 'character-item';
+            item.onclick = () => solicitarCodigo(p.nombre, p.password);
+            
+            item.innerHTML = `
+                <div>
+                    <div class="character-name">${p.nombre}</div>
+                    <div class="character-clan">${p.clan || 'Vástago'}</div>
+                </div>
+                <i class="fa-solid fa-lock" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
+            `;
+            listContainer.appendChild(item);
+        });
+    });
+
+    // 4. LÓGICA DE VALIDACIÓN DE CONTRASEÑA DE PERSONAJE
+    let personajeSeleccionado = null;
+    let passwordEsperada = null;
+
+    window.solicitarCodigo = function(nombre, password) {
+        personajeSeleccionado = nombre;
+        passwordEsperada = password;
+        document.getElementById('modalCharacterTitle').textContent = `Acceso: ${nombre}`;
+        document.getElementById('characterCodeInput').value = '';
+        document.getElementById('codeModal').style.display = 'flex';
+        document.getElementById('characterCodeInput').focus();
+    };
+
+    window.cerrarModalCodigo = function() {
+        document.getElementById('codeModal').style.display = 'none';
+    };
+
+    window.verificarCodigoPersonaje = function() {
+        const ingresada = document.getElementById('characterCodeInput').value.trim();
+        if (ingresada === passwordEsperada) {
+            localStorage.setItem(`vtm-active-character-${grupoActual}`, personajeSeleccionado);
+            alert(`¡Identidad verificada! Ahora hablas en el chat general como ${personajeSeleccionado}.`);
+            cerrarModalCodigo();
+        } else {
+            alert("Contraseña incorrecta. Introduce la clave correcta.");
+        }
+    };
 </script>
 
 </body>
