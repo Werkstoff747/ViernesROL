@@ -32,6 +32,7 @@
             --header-border: #8b0000;
             --card-title-color: #ffffff;
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.4));
+            --clan-icon-filter: brightness(0) invert(1);
         }
 
         body.light-mode {
@@ -49,6 +50,7 @@
             --header-border: #7a0000;
             --card-title-color: #111115;
             --logo-filter: drop-shadow(0px 2px 8px rgba(201, 42, 42, 0.5));
+            --clan-icon-filter: brightness(0);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -212,17 +214,29 @@
             transition: all 0.2s;
         }
         .character-item.active {
-            border-color: var(--accent-gold);
             background: rgba(197, 160, 89, 0.12);
         }
-        .character-info {
+        
+        .character-left-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             cursor: pointer;
             flex-grow: 1;
         }
-        .character-info:hover .character-name {
+        .character-left-group:hover .character-name {
             color: var(--accent-gold);
             text-decoration: underline;
         }
+        .character-clan-icon {
+            height: 38px;
+            width: 38px;
+            object-fit: contain;
+            filter: var(--clan-icon-filter);
+            flex-shrink: 0;
+            transition: filter 0.3s ease;
+        }
+
         .character-lock-btn {
             background: none;
             border: none;
@@ -325,7 +339,7 @@
                 </div>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px;" id="infoIdentidad">
-                Haz clic sobre tu nombre o candado para iniciar sesión.
+                Haz clic en tu nombre o candado para iniciar sesión.
             </div>
         </div>
     </div>
@@ -405,10 +419,13 @@
     const db = getDatabase(app);
     const grupoActual = 'viernesrol';
 
-    let canalActivo = 'general'; // 'general' o 'privado'
+    let canalActivo = 'general';
     let nombreNarradorActual = null;
-    let objetivoPrivadoST = null; // A quién le habla el narrador en privado
+    let objetivoPrivadoST = null;
     let hayMensajesNuevosPrivados = false;
+    
+    // Mapa dinámico para recordar los colores de cada autor en el chat
+    const mapaColoresClanes = {};
 
     window.cambiarCanal = function(canal) {
         canalActivo = canal;
@@ -466,7 +483,28 @@
         location.reload();
     };
 
-    // 1. CARGAR PERSONAJES DESDE FIREBASE
+    // Función para obtener el color dinámico exacto de cada clan o narrador
+    function obtenerColorClan(clanStr) {
+        if (!clanStr) return '#e2e8f0';
+        const c = clanStr.toLowerCase().trim();
+        if (c.includes('narrador') || c.includes('storyteller') || c.includes('director')) return '#e2e8f0';
+        if (c.includes('ventrue')) return '#3b82f6';
+        if (c.includes('toreador')) return '#ec4899';
+        if (c.includes('tremere')) return '#8b5cf6';
+        if (c.includes('brujah')) return '#ef4444';
+        if (c.includes('lasombra')) return '#64748b';
+        if (c.includes('malkavian')) return '#c084fc';
+        if (c.includes('nosferatu')) return '#65a30d';
+        if (c.includes('gangrel')) return '#ea580c';
+        if (c.includes('hecata')) return '#14b8a6';
+        if (c.includes('tzimisce')) return '#065f46';
+        if (c.includes('banu') || c.includes('haqim')) return '#eab308';
+        if (c.includes('ministerio') || c.includes('setita')) return '#f59e0b';
+        if (c.includes('ravnos')) return '#6366f1';
+        return '#e2e8f0'; // Por defecto
+    }
+
+    // 1. CARGAR PERSONAJES DESDE FIREBASE CON COLORES, ESCUDOS Y ROL SIMPLIFICADO
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
@@ -482,12 +520,28 @@
 
         Object.entries(personajes).forEach(([key, p]) => {
             const nombreLimpio = p.nombre ? String(p.nombre).replace(/"/g, '') : '';
-            const clanLimpio = p.clan ? String(p.clan).replace(/"/g, '') : 'Vástago';
+            let clanLimpio = p.clan ? String(p.clan).replace(/"/g, '') : 'Vástago';
             const passLimpa = p.password ? String(p.password).replace(/"/g, '') : '';
 
             const esST = clanLimpio.toLowerCase().includes('director') || clanLimpio.toLowerCase().includes('narrador') || nombreLimpio.toLowerCase() === 'narrador';
+            
             if (esST) {
                 nombreNarradorActual = nombreLimpio;
+                clanLimpio = "Narrador";
+            }
+
+            const colorClan = obtenerColorClan(clanLimpio);
+            
+            // Guardar en caché el color del autor para usarlo en el chat
+            mapaColoresClanes[nombreLimpio.toLowerCase()] = colorClan;
+
+            // Resolver ruta del icono del clan o narrador de forma dinámica
+            let iconoSrc = "./iconos/VTM-Ank.png";
+            if (esST) {
+                iconoSrc = "./iconos/clanes/Narrador_symbol.png";
+            } else if (clanLimpio && clanLimpio !== 'pendiente' && clanLimpio !== 'Vástago') {
+                const clanNormalizado = clanLimpio.toLowerCase().trim();
+                iconoSrc = `./iconos/clanes/${clanNormalizado}.png`;
             }
 
             const item = document.createElement('div');
@@ -496,11 +550,15 @@
                 item.classList.add('active');
             }
 
-            // Izquierda: Nombre clicable para abrir chat privado
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'character-info';
-            infoDiv.title = "Hacer clic para abrir chat privado";
-            infoDiv.onclick = () => {
+            // Aplicar estilo dinámico en el borde y brillo de la tarjeta
+            item.style.borderColor = colorClan;
+            item.style.boxShadow = `inset 0 0 10px ${colorClan}15, 0 0 8px ${colorClan}30`;
+
+            // Izquierda: Grupo con escudo dinámico y nombre clicable
+            const leftGroup = document.createElement('div');
+            leftGroup.className = 'character-left-group';
+            leftGroup.title = "Hacer clic para abrir chat privado";
+            leftGroup.onclick = () => {
                 const soyST = identidadActiva && identidadActiva.toLowerCase() === (nombreNarradorActual || '').toLowerCase();
                 if (soyST) {
                     objetivoPrivadoST = nombreLimpio;
@@ -509,10 +567,24 @@
                     cambiarCanal('privado');
                 }
             };
-            infoDiv.innerHTML = `
+
+            const imgIcon = document.createElement('img');
+            imgIcon.className = 'character-clan-icon';
+            imgIcon.src = iconoSrc;
+            imgIcon.alt = clanLimpio;
+            imgIcon.onerror = function() {
+                this.onerror = null;
+                this.src = './iconos/VTM-Ank.png';
+            };
+
+            const textDiv = document.createElement('div');
+            textDiv.innerHTML = `
                 <div class="character-name">${nombreLimpio}</div>
                 <div class="character-clan">${clanLimpio}</div>
             `;
+
+            leftGroup.appendChild(imgIcon);
+            leftGroup.appendChild(textDiv);
 
             // Derecha: Botón de candado para login
             const lockBtn = document.createElement('button');
@@ -521,13 +593,13 @@
             lockBtn.innerHTML = `<i class="fa-solid ${identidadActiva === nombreLimpio ? 'fa-unlock' : 'fa-lock'}"></i>`;
             lockBtn.onclick = () => solicitarCodigo(nombreLimpio, passLimpa);
 
-            item.appendChild(infoDiv);
+            item.appendChild(leftGroup);
             item.appendChild(lockBtn);
             listContainer.appendChild(item);
         });
     });
 
-    // 2. CARGAR MENSAJES GENERALES
+    // 2. CARGAR MENSAJES GENERALES (CON NOMBRES DESTACADOS EN COLOR Y MÁS GRANDES)
     const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
     onValue(mensajesRef, (snapshot) => {
         const container = document.getElementById('generalMessages');
@@ -550,11 +622,14 @@
                 fechaHoraFormateada = `${dia}/${mes}/${fecha.getFullYear()} a las ${horas}:${minutos}`;
             }
 
+            const autorNombre = msg.autor || 'Anónimo';
+            const colorAutor = mapaColoresClanes[autorNombre.toLowerCase()] || '#c5a059';
+
             const msgDiv = document.createElement('div');
             msgDiv.style.cssText = 'padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px;';
             msgDiv.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="font-size: 0.78rem; color: var(--accent-gold); font-family: 'Cinzel', serif; font-weight: bold;">${msg.autor || 'Anónimo'}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 0.95rem; color: ${colorAutor}; font-family: 'Cinzel', serif; font-weight: bold; text-shadow: 0 0 8px ${colorAutor}40;">${autorNombre}</span>
                     <span style="font-size: 0.68rem; color: var(--text-muted);">${fechaHoraFormateada}</span>
                 </div>
                 <div style="font-size: 0.9rem; color: var(--text-main);">${msg.texto}</div>
@@ -564,7 +639,7 @@
         container.scrollTop = container.scrollHeight;
     });
 
-    // 3. CARGAR MENSAJES PRIVADOS (SUSURROS)
+    // 3. CARGAR MENSAJES PRIVADOS (CON NOMBRES DESTACADOS EN COLOR Y MÁS GRANDES)
     const privadosRef = ref(db, `grupos/${grupoActual}/mensajes_privados`);
     onValue(privadosRef, (snapshot) => {
         const container = document.getElementById('privateMessages');
@@ -599,7 +674,6 @@
 
             if (!mostrar) return;
 
-            // Comprobar notificación si el mensaje es reciente y no estamos en la pestaña privada
             if (canalActivo !== 'privado' && msg.remitente !== identidadActual) {
                 contadorNuevos++;
             }
@@ -614,11 +688,16 @@
                 fechaHoraFormateada = `${dia}/${mes}/${fecha.getFullYear()} a las ${horas}:${minutos}`;
             }
 
+            const colorRemitente = mapaColoresClanes[msg.remitente.toLowerCase()] || '#c5a059';
+            const colorDestinatario = mapaColoresClanes[msg.destinatario.toLowerCase()] || '#c5a059';
+
             const msgDiv = document.createElement('div');
             msgDiv.style.cssText = 'padding: 10px 12px; background: rgba(197, 160, 89, 0.05); border: 1px solid var(--accent-gold); border-radius: 6px;';
             msgDiv.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="font-size: 0.78rem; color: var(--accent-gold); font-family: 'Cinzel', serif; font-weight: bold;">🔒 ${msg.remitente} → ${msg.destinatario}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 0.92rem; font-family: 'Cinzel', serif; font-weight: bold;">
+                        🔒 <span style="color: ${colorRemitente};">${msg.remitente}</span> → <span style="color: ${colorDestinatario};">${msg.destinatario}</span>
+                    </span>
                     <span style="font-size: 0.68rem; color: var(--text-muted);">${fechaHoraFormateada}</span>
                 </div>
                 <div style="font-size: 0.9rem; color: var(--text-main);">${msg.texto}</div>
@@ -700,18 +779,22 @@
 
     window.cerrarModalCodigo = function() {
         document.getElementById('codeModal').style.display = 'none';
+        document.getElementById('characterCodeInput').value = '';
     };
 
     window.verificarCodigoPersonaje = function() {
-        const ingresada = document.getElementById('characterCodeInput').value.trim();
+        const inputPass = document.getElementById('characterCodeInput');
+        const ingresada = inputPass.value.trim();
         if (ingresada === passwordEsperada) {
             localStorage.setItem(`vtm-active-character-${grupoActual}`, personajeSeleccionado);
             alert(`¡Identidad verificada! Ahora actúas como ${personajeSeleccionado}.`);
+            inputPass.value = '';
             cerrarModalCodigo();
             actualizarInterfazIdentidad();
             location.reload(); 
         } else {
             alert("Contraseña incorrecta.");
+            inputPass.value = '';
         }
     };
 
