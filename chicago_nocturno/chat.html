@@ -333,7 +333,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    // 1. TUS CLAVES REALES DE FIREBASE
+    // 1. TUS CLAVES ORIGINALES DE VIERNESROL
     const firebaseConfig = {
         apiKey: "AIzaSyAsf5dbiRcyO13C8jbN5GSafraOZLV3W6A",
         authDomain: "viernesrol-chat.firebaseapp.com",
@@ -422,7 +422,7 @@
         });
     };
 
-    // 4. CARGAR PERSONAJES DESDE FIREBASE (CON LIMPIEZA DE COMILLAS)
+    // 4. CARGAR PERSONAJES DESDE FIREBASE (CON LIMPIEZA AUTOMÁTICA DE COMILLAS)
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
