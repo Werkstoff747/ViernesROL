@@ -422,7 +422,7 @@
         });
     };
 
-    // 4. CARGAR PERSONAJES DESDE FIREBASE
+    // 4. CARGAR PERSONAJES DESDE FIREBASE (CON LIMPIEZA DE COMILLAS)
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
@@ -437,20 +437,24 @@
         const identidadActiva = localStorage.getItem(`vtm-active-character-${grupoActual}`);
 
         Object.entries(personajes).forEach(([key, p]) => {
+            const nombreLimpio = p.nombre ? String(p.nombre).replace(/"/g, '') : '';
+            const clanLimpio = p.clan ? String(p.clan).replace(/"/g, '') : 'Vástago';
+            const passLimpa = p.password ? String(p.password).replace(/"/g, '') : '';
+
             const item = document.createElement('div');
             item.className = 'character-item';
-            if (identidadActiva === p.nombre) {
+            if (identidadActiva === nombreLimpio) {
                 item.classList.add('active');
             }
             
-            item.onclick = () => solicitarCodigo(p.nombre, p.password);
+            item.onclick = () => solicitarCodigo(nombreLimpio, passLimpa);
             
             item.innerHTML = `
                 <div>
-                    <div class="character-name">${p.nombre}</div>
-                    <div class="character-clan">${p.clan || 'Vástago'}</div>
+                    <div class="character-name">${nombreLimpio}</div>
+                    <div class="character-clan">${clanLimpio}</div>
                 </div>
-                <i class="fa-solid ${identidadActiva === p.nombre ? 'fa-unlock' : 'fa-lock'}" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
+                <i class="fa-solid ${identidadActiva === nombreLimpio ? 'fa-unlock' : 'fa-lock'}" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
             `;
             listContainer.appendChild(item);
         });
