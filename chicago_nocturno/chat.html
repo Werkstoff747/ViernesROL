@@ -424,7 +424,6 @@
     let objetivoPrivadoST = null;
     let hayMensajesNuevosPrivados = false;
     
-    // Mapa dinámico para recordar los colores de cada autor en el chat
     const mapaColoresClanes = {};
 
     window.cambiarCanal = function(canal) {
@@ -483,6 +482,30 @@
         location.reload();
     };
 
+    // Función auxiliar para obtener el icono exacto del clan o narrador
+    function obtenerIconoClan(clanStr) {
+        if (!clanStr) return './iconos/VTM-Ank.png';
+        const c = clanStr.toLowerCase();
+        if (c.includes('narrador') || c.includes('storyteller') || c.includes('director')) return './iconos/clanes/Narrador_symbol.png';
+        if (c.includes('banu')) return './iconos/clanes/Banu_Haqim_Symbol.png';
+        if (c.includes('brujah')) return './iconos/clanes/Brujah_symbol.png';
+        if (c.includes('caitiff')) return './iconos/clanes/Caitiff_symbol.png';
+        if (c.includes('gangrel')) return './iconos/clanes/Gangrel_symbol.png';
+        if (c.includes('hecata')) return './iconos/clanes/Hecata_symbol.png';
+        if (c.includes('lasombra')) return './iconos/clanes/Lasombra_symbol.png';
+        if (c.includes('malkavian')) return './iconos/clanes/Malkavian_symbol.png';
+        if (c.includes('ministry') || c.includes('ministerio')) return './iconos/clanes/Ministry_symbol.png';
+        if (c.includes('nosferatu')) return './iconos/clanes/Nosferatu_symbol.png';
+        if (c.includes('ravnos')) return './iconos/clanes/Ravnos_symbol.png';
+        if (c.includes('salubri')) return './iconos/clanes/Salubri_symbol.png';
+        if (c.includes('thin') || c.includes('debil') || c.includes('débil')) return './iconos/clanes/Thinblood_symbol.png';
+        if (c.includes('toreador')) return './iconos/clanes/Toreador_symbol.png';
+        if (c.includes('tremere')) return './iconos/clanes/Tremere_symbol.png';
+        if (c.includes('tzimisce')) return './iconos/clanes/Tzimisce_symbol.png';
+        if (c.includes('ventrue')) return './iconos/clanes/Ventrue_symbol.png';
+        return './iconos/VTM-Ank.png';
+    }
+
     // Función para obtener el color dinámico exacto de cada clan o narrador
     function obtenerColorClan(clanStr) {
         if (!clanStr) return '#e2e8f0';
@@ -501,10 +524,10 @@
         if (c.includes('banu') || c.includes('haqim')) return '#eab308';
         if (c.includes('ministerio') || c.includes('setita')) return '#f59e0b';
         if (c.includes('ravnos')) return '#6366f1';
-        return '#e2e8f0'; // Por defecto
+        return '#e2e8f0';
     }
 
-    // 1. CARGAR PERSONAJES DESDE FIREBASE CON COLORES, ESCUDOS Y ROL SIMPLIFICADO
+    // 1. CARGAR PERSONAJES DESDE FIREBASE
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
@@ -531,22 +554,10 @@
             }
 
             const colorClan = obtenerColorClan(clanLimpio);
-            
-            // Guardar en caché el color del autor para usarlo en el chat
             mapaColoresClanes[nombreLimpio.toLowerCase()] = colorClan;
 
-            // Resolver ruta del icono del clan o narrador de forma robusta
-                        let iconoSrc = "./iconos/VTM-Ank.png";
-                        if (esST) {
-                            iconoSrc = "./iconos/clanes/Narrador_symbol.png";
-                        } else if (clanLimpio && clanLimpio !== 'pendiente' && clanLimpio !== 'Vástago') {
-                            // Normalizar el nombre del clan para que coincida con el archivo (minúsculas, sin espacios extra, espacios por guiones bajos)
-                            let clanNormalizado = clanLimpio.toLowerCase().trim()
-                                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar tildes (ej: á -> a)
-                                .replace(/\s+/g, '_'); // Reemplazar espacios por guiones bajos (ej: banu haqim -> banu_haqim)
-                            
-                            iconoSrc = `./iconos/clanes/${clanNormalizado}.png`;
-                        }
+            // Uso de la función exacta obtenerIconoClan
+            let iconoSrc = obtenerIconoClan(clanLimpio);
 
             const item = document.createElement('div');
             item.className = 'character-item';
@@ -554,11 +565,9 @@
                 item.classList.add('active');
             }
 
-            // Aplicar estilo dinámico en el borde y brillo de la tarjeta
             item.style.borderColor = colorClan;
             item.style.boxShadow = `inset 0 0 10px ${colorClan}15, 0 0 8px ${colorClan}30`;
 
-            // Izquierda: Grupo con escudo dinámico y nombre clicable
             const leftGroup = document.createElement('div');
             leftGroup.className = 'character-left-group';
             leftGroup.title = "Hacer clic para abrir chat privado";
@@ -590,7 +599,6 @@
             leftGroup.appendChild(imgIcon);
             leftGroup.appendChild(textDiv);
 
-            // Derecha: Botón de candado para login
             const lockBtn = document.createElement('button');
             lockBtn.className = 'character-lock-btn';
             lockBtn.title = identidadActiva === nombreLimpio ? "Sesión iniciada" : "Iniciar sesión con contraseña";
@@ -603,7 +611,7 @@
         });
     });
 
-    // 2. CARGAR MENSAJES GENERALES (CON NOMBRES DESTACADOS EN COLOR Y MÁS GRANDES)
+    // 2. CARGAR MENSAJES GENERALES
     const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
     onValue(mensajesRef, (snapshot) => {
         const container = document.getElementById('generalMessages');
@@ -643,7 +651,7 @@
         container.scrollTop = container.scrollHeight;
     });
 
-    // 3. CARGAR MENSAJES PRIVADOS (CON NOMBRES DESTACADOS EN COLOR Y MÁS GRANDES)
+    // 3. CARGAR MENSAJES PRIVADOS
     const privadosRef = ref(db, `grupos/${grupoActual}/mensajes_privados`);
     onValue(privadosRef, (snapshot) => {
         const container = document.getElementById('privateMessages');
@@ -719,7 +727,7 @@
         container.scrollTop = container.scrollHeight;
     });
 
-    // 4. ENVIAR MENSAJE (GENERAL O PRIVADO)
+    // 4. ENVIAR MENSAJE
     window.enviarMensajeActual = function() {
         const input = document.getElementById('generalInput');
         const texto = input.value.trim();
