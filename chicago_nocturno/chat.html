@@ -178,9 +178,8 @@
             gap: 10px;
         }
 
-        .chat-input-box { display: flex; gap: 10px; flex-direction: column; }
-        .chat-input-row { display: flex; gap: 10px; width: 100%; }
-        .chat-input-row input {
+        .chat-input-box { display: flex; gap: 10px; }
+        .chat-input-box input {
             flex-grow: 1;
             padding: 10px 12px;
             background: var(--input-bg);
@@ -205,22 +204,34 @@
         .character-item {
             background: var(--input-bg);
             border: 1px solid var(--card-border);
-            padding: 12px;
+            padding: 10px 12px;
             border-radius: 6px;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
             transition: all 0.2s;
         }
-        .character-item:hover {
-            border-color: var(--accent-gold);
-            background: rgba(197, 160, 89, 0.05);
-        }
         .character-item.active {
             border-color: var(--accent-gold);
             background: rgba(197, 160, 89, 0.12);
         }
+        .character-info {
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        .character-info:hover .character-name {
+            color: var(--accent-gold);
+            text-decoration: underline;
+        }
+        .character-lock-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.9rem;
+            color: var(--accent-gold);
+        }
+
         .character-name { font-family: 'Cinzel', serif; font-size: 0.9rem; font-weight: 700; color: var(--card-title-color); }
         .character-clan { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
 
@@ -233,7 +244,7 @@
             padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; text-align: center;
         }
         .modal-content h3 { font-family: 'Cinzel', serif; color: var(--accent-gold); margin-bottom: 15px; }
-        .modal-content input, .modal-content select {
+        .modal-content input {
             width: 100%; padding: 10px; background: var(--input-bg);
             border: 1px solid var(--card-border); color: var(--text-main); border-radius: 5px; text-align: center; margin-bottom: 15px; outline: none;
         }
@@ -277,14 +288,14 @@
         <div class="chat-panel">
             <div>
                 <div class="panel-title">
-                    <div><i class="fa-solid fa-comments"></i> Refugio de la Crónica</div>
+                    <div><i class="fa-solid fa-comments"></i> <span id="tituloPanelChat">Canal General de la Crónica</span></div>
                     <span id="identidadActualBadge" style="font-size: 0.75rem; color: var(--accent-gold); font-weight: normal;">(Sin identificar)</span>
                 </div>
 
                 <!-- Pestañas de Canales -->
                 <div class="chat-tabs">
                     <button class="chat-tab active" id="tabGeneral" onclick="cambiarCanal('general')"><i class="fa-solid fa-globe"></i> Canal General</button>
-                    <button class="chat-tab" id="tabPrivado" onclick="cambiarCanal('privado')"><i class="fa-solid fa-user-secret"></i> Susurros / Secretos</button>
+                    <button class="chat-tab" id="tabPrivado" onclick="cambiarCanal('privado')"><i class="fa-solid fa-user-secret"></i> Susurros / Secretos <span id="notifPrivada" style="display:none; color: #ff4d4d;">●</span></button>
                 </div>
 
                 <!-- Contenedor Mensajes General -->
@@ -300,15 +311,8 @@
 
             <!-- Caja de entrada -->
             <div class="chat-input-box">
-                <div id="stSelectReceiverBox" style="display: none; margin-bottom: 5px;">
-                    <select id="stReceiverSelect" style="width: 100%; padding: 6px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 4px; font-size: 0.85rem;" onchange="actualizarDestinatarioST()">
-                        <option value="">-- Selecciona un jugador para susurrar --</option>
-                    </select>
-                </div>
-                <div class="chat-input-row">
-                    <input type="text" id="generalInput" placeholder="Identifícate a la derecha para poder hablar..." onkeypress="if(event.key === 'Enter') enviarMensajeActual()">
-                    <button class="chat-send-btn" onclick="enviarMensajeActual()">Enviar</button>
-                </div>
+                <input type="text" id="generalInput" placeholder="Selecciona tu personaje a la derecha para hablar..." onkeypress="if(event.key === 'Enter') enviarMensajeActual()">
+                <button class="chat-send-btn" onclick="enviarMensajeActual()">Enviar</button>
             </div>
         </div>
 
@@ -321,7 +325,7 @@
                 </div>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 15px;" id="infoIdentidad">
-                Haz clic sobre tu nombre e introduce tu contraseña para activar tu identidad.
+                Haz clic sobre tu nombre o candado para iniciar sesión.
             </div>
         </div>
     </div>
@@ -403,7 +407,8 @@
 
     let canalActivo = 'general'; // 'general' o 'privado'
     let nombreNarradorActual = null;
-    let receptorPrivadoST = null;
+    let objetivoPrivadoST = null; // A quién le habla el narrador en privado
+    let hayMensajesNuevosPrivados = false;
 
     window.cambiarCanal = function(canal) {
         canalActivo = canal;
@@ -411,23 +416,27 @@
         const btnPriv = document.getElementById('tabPrivado');
         const boxGen = document.getElementById('generalMessages');
         const boxPriv = document.getElementById('privateMessages');
-        const stSelectBox = document.getElementById('stSelectReceiverBox');
+        const tituloChat = document.getElementById('tituloPanelChat');
 
         if (canal === 'general') {
             btnGen.classList.add('active');
             btnPriv.classList.remove('active');
             boxGen.style.display = 'flex';
             boxPriv.style.display = 'none';
-            if (stSelectBox) stSelectBox.style.display = 'none';
+            tituloChat.textContent = "Canal General de la Crónica";
         } else {
             btnPriv.classList.add('active');
             btnGen.classList.remove('active');
             boxPriv.style.display = 'flex';
             boxGen.style.display = 'none';
+            hayMensajesNuevosPrivados = false;
+            document.getElementById('notifPrivada').style.display = 'none';
             
             const identidad = localStorage.getItem(`vtm-active-character-${grupoActual}`);
             if (identidad && identidad.toLowerCase() === (nombreNarradorActual || '').toLowerCase()) {
-                if (stSelectBox) stSelectBox.style.display = 'block';
+                tituloChat.textContent = objetivoPrivadoST ? `Susurros con: ${objetivoPrivadoST}` : "Susurros (Selecciona un jugador)";
+            } else {
+                tituloChat.textContent = "Susurros con el Narrador";
             }
         }
     };
@@ -447,7 +456,7 @@
             badge.textContent = '(Sin identificar)';
             badge.style.color = 'var(--accent-crimson)';
             inputMsg.placeholder = 'Identifícate a la derecha para poder hablar...';
-            infoDiv.textContent = 'Haz clic sobre tu nombre e introduce tu contraseña.';
+            infoDiv.textContent = 'Haz clic en tu nombre o candado para iniciar sesión.';
         }
     }
 
@@ -461,9 +470,7 @@
     const personajesRef = ref(db, `grupos/${grupoActual}/personajes`);
     onValue(personajesRef, (snapshot) => {
         const listContainer = document.getElementById('characterList');
-        const selectReceiver = document.getElementById('stReceiverSelect');
         listContainer.innerHTML = '';
-        if (selectReceiver) selectReceiver.innerHTML = '<option value="">-- Selecciona un jugador para susurrar --</option>';
 
         if (!snapshot.exists()) {
             listContainer.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">No hay personajes registrados.</p>';
@@ -472,7 +479,6 @@
 
         const personajes = snapshot.val();
         const identidadActiva = localStorage.getItem(`vtm-active-character-${grupoActual}`);
-        let esNarradorActual = false;
 
         Object.entries(personajes).forEach(([key, p]) => {
             const nombreLimpio = p.nombre ? String(p.nombre).replace(/"/g, '') : '';
@@ -480,19 +486,8 @@
             const passLimpa = p.password ? String(p.password).replace(/"/g, '') : '';
 
             const esST = clanLimpio.toLowerCase().includes('director') || clanLimpio.toLowerCase().includes('narrador') || nombreLimpio.toLowerCase() === 'narrador';
-
             if (esST) {
                 nombreNarradorActual = nombreLimpio;
-            } else if (selectReceiver) {
-                const opt = document.createElement('option');
-                opt.value = nombreLimpio;
-                opt.textContent = `${nombreLimpio} (${clanLimpio})`;
-                if (receptorPrivadoST === nombreLimpio) opt.selected = true;
-                selectReceiver.appendChild(opt);
-            }
-
-            if (identidadActiva === nombreLimpio && esST) {
-                esNarradorActual = true;
             }
 
             const item = document.createElement('div');
@@ -500,26 +495,39 @@
             if (identidadActiva === nombreLimpio) {
                 item.classList.add('active');
             }
-            
-            item.onclick = () => solicitarCodigo(nombreLimpio, passLimpa);
-            
-            item.innerHTML = `
-                <div>
-                    <div class="character-name">${nombreLimpio}</div>
-                    <div class="character-clan">${clanLimpio}</div>
-                </div>
-                <i class="fa-solid ${identidadActiva === nombreLimpio ? 'fa-unlock' : 'fa-lock'}" style="color: var(--accent-gold); font-size: 0.8rem;"></i>
+
+            // Izquierda: Nombre clicable para abrir chat privado
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'character-info';
+            infoDiv.title = "Hacer clic para abrir chat privado";
+            infoDiv.onclick = () => {
+                const soyST = identidadActiva && identidadActiva.toLowerCase() === (nombreNarradorActual || '').toLowerCase();
+                if (soyST) {
+                    objetivoPrivadoST = nombreLimpio;
+                    cambiarCanal('privado');
+                } else {
+                    cambiarCanal('privado');
+                }
+            };
+            infoDiv.innerHTML = `
+                <div class="character-name">${nombreLimpio}</div>
+                <div class="character-clan">${clanLimpio}</div>
             `;
+
+            // Derecha: Botón de candado para login
+            const lockBtn = document.createElement('button');
+            lockBtn.className = 'character-lock-btn';
+            lockBtn.title = identidadActiva === nombreLimpio ? "Sesión iniciada" : "Iniciar sesión con contraseña";
+            lockBtn.innerHTML = `<i class="fa-solid ${identidadActiva === nombreLimpio ? 'fa-unlock' : 'fa-lock'}"></i>`;
+            lockBtn.onclick = () => solicitarCodigo(nombreLimpio, passLimpa);
+
+            item.appendChild(infoDiv);
+            item.appendChild(lockBtn);
             listContainer.appendChild(item);
         });
-
-        const stSelectBox = document.getElementById('stSelectReceiverBox');
-        if (stSelectBox) {
-            stSelectBox.style.display = (esNarradorActual && canalActivo === 'privado') ? 'block' : 'none';
-        }
     });
 
-    // 2. CARGAR MENSAJES GENERALES CON TIMESTAMP
+    // 2. CARGAR MENSAJES GENERALES
     const mensajesRef = ref(db, `grupos/${grupoActual}/mensajes_generales`);
     onValue(mensajesRef, (snapshot) => {
         const container = document.getElementById('generalMessages');
@@ -556,7 +564,7 @@
         container.scrollTop = container.scrollHeight;
     });
 
-    // 3. CARGAR MENSAJES PRIVADOS (SUSURROS) CON TIMESTAMP
+    // 3. CARGAR MENSAJES PRIVADOS (SUSURROS)
     const privadosRef = ref(db, `grupos/${grupoActual}/mensajes_privados`);
     onValue(privadosRef, (snapshot) => {
         const container = document.getElementById('privateMessages');
@@ -575,11 +583,12 @@
 
         const data = snapshot.val();
         const esST = identidadActual.toLowerCase() === (nombreNarradorActual || '').toLowerCase();
+        let contadorNuevos = 0;
 
         Object.values(data).forEach(msg => {
             let mostrar = false;
             if (esST) {
-                if (receptorPrivadoST && (msg.remitente === receptorPrivadoST || msg.destinatario === receptorPrivadoST)) {
+                if (objetivoPrivadoST && (msg.remitente === objetivoPrivadoST || msg.destinatario === objetivoPrivadoST)) {
                     mostrar = true;
                 }
             } else {
@@ -589,6 +598,11 @@
             }
 
             if (!mostrar) return;
+
+            // Comprobar notificación si el mensaje es reciente y no estamos en la pestaña privada
+            if (canalActivo !== 'privado' && msg.remitente !== identidadActual) {
+                contadorNuevos++;
+            }
 
             let fechaHoraFormateada = '';
             if (msg.timestamp) {
@@ -612,14 +626,15 @@
             container.appendChild(msgDiv);
         });
 
-        if (container.innerHTML === '') {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Selecciona un interlocutor para ver los secretos.</p>';
+        if (contadorNuevos > 0) {
+            document.getElementById('notifPrivada').style.display = 'inline';
         }
-    });
 
-    window.actualizarDestinatarioST = function() {
-        receptorPrivadoST = document.getElementById('stReceiverSelect').value;
-    };
+        if (container.innerHTML === '') {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-style: italic; margin-top: 20px;">Selecciona un personaje a la derecha para ver sus secretos.</p>';
+        }
+        container.scrollTop = container.scrollHeight;
+    });
 
     // 4. ENVIAR MENSAJE (GENERAL O PRIVADO)
     window.enviarMensajeActual = function() {
@@ -629,7 +644,7 @@
 
         const autorActual = localStorage.getItem(`vtm-active-character-${grupoActual}`);
         if (!autorActual) {
-            alert("Debes hacer clic en tu personaje en el panel derecho e introducir tu contraseña antes de escribir.");
+            alert("Debes hacer clic en el candado de tu personaje en el panel derecho e introducir tu contraseña antes de escribir.");
             return;
         }
 
@@ -649,11 +664,11 @@
             let destinatario = nombreNarradorActual;
 
             if (esST) {
-                if (!receptorPrivadoST) {
-                    alert("Selecciona primero un jugador en el desplegable superior para enviarle el susurro.");
+                if (!objetivoPrivadoST) {
+                    alert("Haz clic primero sobre el nombre de un personaje en la columna derecha para abrir su chat privado.");
                     return;
                 }
-                destinatario = receptorPrivadoST;
+                destinatario = objetivoPrivadoST;
             }
 
             push(privadosRef, {
