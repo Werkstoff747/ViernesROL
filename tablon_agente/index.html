@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tablero Táctico v1.0.02</title>
+    <title>Tablero Táctico v1.0.03</title>
 
     <!-- Favicon Dado Rojo -->
     <link rel="icon" type="image/png" href="../imagenes/dado-rojo.png">
@@ -121,6 +121,16 @@
         #string-canvas, #drawing-canvas { position: absolute; top: 0; left: 0; width: 6000px; height: 6000px; pointer-events: none; z-index: 10; }
         #drawing-canvas { z-index: 15; }
 
+        .op-badge {
+            position: absolute; top: 20px; left: 25px;
+            background: rgba(18, 24, 36, 0.92); border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); padding: 8px 16px; border-radius: 20px;
+            font-family: 'Special Elite', monospace; font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 1000;
+            backdrop-filter: blur(5px); display: flex; align-items: center; gap: 8px;
+            letter-spacing: 1px; user-select: none;
+        }
+
         .floating-toolbar {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(18, 24, 36, 0.95); border: 1px solid var(--accent-gold);
@@ -216,7 +226,7 @@
     <div id="admin-view">
         <div class="dashboard-container">
             <div class="dash-header">
-                <h1>TABLERO TÁCTICO</h1> <span class="version-badge">v1.0.02</span>
+                <h1>TABLERO TÁCTICO</h1> <span class="version-badge">v1.0.03</span>
             </div>
 
             <div class="dash-grid">
@@ -238,7 +248,7 @@
                     </div>
 
                     <ul class="feature-list">
-                        <li><i class="fa-solid fa-check"></i> Sincronización Dual TV (Portátil / Pantalla)</li>
+                        <li><i class="fa-solid fa-check"></i> Sincronización Dual (Ventana Principal / Secundaria)</li>
                         <li><i class="fa-solid fa-check"></i> Modo Top Secret / Expedientes Clasificados</li>
                         <li><i class="fa-solid fa-check"></i> Rotulador Rojo + Goma de Borrar Vectorial</li>
                         <li><i class="fa-solid fa-check"></i> Auto-Detección de Nombre al Importar JSON</li>
@@ -264,7 +274,7 @@
 
             <div class="start-btn-container">
                 <button class="start-btn" onclick="enterBoard()">INICIAR EN ESTA PESTAÑA</button>
-                <button class="start-btn tv-btn" onclick="openTVWindow()"><i class="fa-solid fa-tv"></i> ABRIR EN VENTANA SECUNDARIA (TV)</button>
+                <button class="start-btn tv-btn" onclick="openTVWindow()"><i class="fa-solid fa-tv"></i> ABRIR EN VENTANA SECUNDARIA</button>
             </div>
         </div>
         
@@ -273,6 +283,12 @@
 
     <!-- VISTA 2: TABLERO INMERSIVO -->
     <div id="board-view" class="cork">
+        <!-- Nombre de Operación Activa -->
+        <div class="op-badge" id="board-op-badge" title="Expediente Cargado">
+            <i class="fa-solid fa-folder-open"></i>
+            <span id="board-op-name">NUEVA_OPERACION</span>
+        </div>
+
         <div class="autosave-toast" id="autosave-toast"><i class="fa-solid fa-floppy-disk"></i> Sincronizado...</div>
         
         <!-- Barra Flotante -->
@@ -361,15 +377,24 @@
     // ==========================================
     // SINCRONIZACIÓN AUTOMÁTICA
     // ==========================================
+    function updateOpBadge() {
+        const badgeText = document.getElementById('board-op-name');
+        if (badgeText) badgeText.innerText = currentOp;
+    }
+
+    function saveDataNow() {
+        const rawOp = document.getElementById('op-name').value.trim();
+        currentOp = rawOp || 'NUEVA_OPERACION';
+        items.opName = currentOp;
+        items.bg = document.getElementById('board-bg-select').value;
+        localStorage.setItem('delta_green_op_' + currentOp, JSON.stringify(items));
+        updateOpBadge();
+    }
+
     function triggerAutoSave() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            const rawOp = document.getElementById('op-name').value.trim();
-            currentOp = rawOp || 'NUEVA_OPERACION';
-            items.opName = currentOp;
-            items.bg = document.getElementById('board-bg-select').value;
-            localStorage.setItem('delta_green_op_' + currentOp, JSON.stringify(items));
-            
+            saveDataNow();
             const toast = document.getElementById('autosave-toast');
             toast.style.opacity = 1;
             setTimeout(() => toast.style.opacity = 0, 1200);
@@ -377,8 +402,9 @@
     }
 
     window.addEventListener('storage', (e) => {
-        if (e.key && e.key.startsWith('delta_green_op_')) {
+        if (e.key === 'delta_green_op_' + currentOp) {
             loadData();
+            document.getElementById('board-view').className = items.bg || 'cork';
             renderDOM();
             drawAll();
         }
@@ -407,21 +433,31 @@
                 ],
                 notes: [{ id: 'n1', text: "Revisar los informes forenses antes del viernes.", color: "yellow", x: 250, y: 420, pin: "yellow" }],
                 connections: [{ from: 'c1', to: 'c2' }],
-                drawings: [], bg: 'cork'
+                drawings: [], bg: document.getElementById('board-bg-select').value || 'cork'
             };
         }
+        updateOpBadge();
     }
 
     // ==========================================
-    // MODO VENTANA SECUNDARIA (TV)
+    // MODO VENTANA SECUNDARIA
     // ==========================================
     function openTVWindow() {
-        triggerAutoSave();
-        const popup = window.open(window.location.pathname + '?mode=tv', 'TV_Board_Window', 'width=1280,height=720,popup=yes');
+        loadData();
+        saveDataNow();
+        const popup = window.open(
+            window.location.pathname + '?mode=tv&op=' + encodeURIComponent(currentOp),
+            'TV_Board_Window',
+            'width=1280,height=720,popup=yes'
+        );
         if (!popup) alert("Por favor, permite las ventanas emergentes en tu navegador.");
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+        const opParam = urlParams.get('op');
+        if (opParam) {
+            document.getElementById('op-name').value = opParam;
+        }
         if (isTVMode) {
             enterBoard();
         }
@@ -450,7 +486,8 @@
 
     function enterBoard() {
         loadData();
-        document.getElementById('board-view').className = document.getElementById('board-bg-select').value;
+        saveDataNow();
+        document.getElementById('board-view').className = items.bg || document.getElementById('board-bg-select').value;
         adminView.style.display = 'none';
         boardView.style.display = 'block';
         centerCamera();
@@ -473,7 +510,7 @@
             if (document.fullscreenElement) document.exitFullscreen();
             boardView.style.display = 'none';
             adminView.style.display = 'flex';
-            triggerAutoSave();
+            saveDataNow();
         }
     }
 
@@ -538,7 +575,7 @@
     }, { passive: false });
 
     boardView.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.floating-toolbar') || e.target.closest('.modal-overlay') || e.target.closest('#lightbox-modal')) return;
+        if (e.target.closest('.floating-toolbar') || e.target.closest('.modal-overlay') || e.target.closest('#lightbox-modal') || e.target.closest('.op-badge')) return;
         
         if (isSpacePressed) {
             isDraggingBoard = true;
