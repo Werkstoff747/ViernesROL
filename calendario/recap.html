@@ -6,7 +6,7 @@
     <title>Los viernes, Rol - Recap Anual de Partidas</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
+    <link rel="icon" type="image/png" href="imagenes/dado_logo.png">
 
     <!-- Google Fonts: Permanent Marker & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,6 +55,10 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
+            background-image: linear-gradient(rgba(18, 24, 36, 0.88), rgba(18, 24, 36, 0.94)), url('imagenes/fondo_fantasia.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -127,7 +131,7 @@
             max-width: 320px;
             margin-left: auto;
             margin-right: auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .recap-controls label {
@@ -180,12 +184,13 @@
             border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             gap: 15px;
+            backdrop-filter: blur(5px);
         }
 
         /* Tarjeta maestra vertical que ocupa 2 filas en la columna 1 */
@@ -491,7 +496,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             transition: all 0.2s ease;
             text-decoration: none;
         }
@@ -529,7 +534,7 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <img src="../imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
+                <img src="imagenes/dado_logo.png" alt="Dado D20" class="header-dice" onerror="this.style.display='none'">
                 <div class="header-text">
                     <span class="header-subtitle-top">Resumen Anual de</span>
                     <h1 class="header-title">ESTADÍSTICAS</h1>
@@ -789,9 +794,8 @@
             `;
         });
 
-        // Estructura de la rejilla con la tarjeta maestra vertical en la columna 1
         statsContainer.innerHTML = `
-            <!-- TARJETA MAESTRA VERTICAL (Columna 1, span 2 filas, dividida en 3 tramos) -->
+            <!-- TARJETA MAESTRA VERTICAL (3 tramos) -->
             <div class="stat-card tall-card highlight">
                 <div>
                     <div class="stat-header"><i class="fa-solid fa-dice-d20"></i> Sesiones Registradas</div>
@@ -816,27 +820,25 @@
                 </div>
             </div>
 
-            <!-- Columna 2, Fila 1 -->
+            <!-- Fila 1, Columnas 2 y 3 -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-user-shield"></i> El Guardián de la Mesa</div>
                 <div class="stat-dynamic-title" title="${reyDeLaMesa}">${reyDeLaMesa}</div>
                 <p class="stat-description">El director de juego que más veces ha dirigido este año.</p>
             </div>
 
-            <!-- Columna 3, Fila 1 -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-book-skull"></i> Sistema Favorito</div>
                 <div class="stat-dynamic-title" title="${sistemaRey}">${sistemaRey}</div>
                 <p class="stat-description">El reglamento que más ha dominado las mesas en ${selectedYear}.</p>
             </div>
 
-            <!-- Columna 2, Fila 2 -->
+            <!-- Fila 2, Columnas 2 y 3 -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-trophy"></i> Ranking de Directores</div>
                 <ul class="ranking-list">${htmlDjsList || '<li class="ranking-item"><span>Sin datos</span></li>'}</ul>
             </div>
 
-            <!-- Columna 3, Fila 2 (Ampliado a 6 líneas para simetría perfecta) -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-list-ol"></i> Ranking de Sistemas</div>
                 <ul class="ranking-list">${htmlSystemsList || '<li class="ranking-item"><span>Sin datos</span></li>'}</ul>
