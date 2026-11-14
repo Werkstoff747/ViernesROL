@@ -8,7 +8,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
 
-    <!-- Google Fonts: Permanent Marker & Inter (Sin Cinzel) -->
+    <!-- Google Fonts: Permanent Marker & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -56,7 +56,7 @@
             padding: 0;
         }
 
-body {
+        body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             background-image: linear-gradient(rgba(18, 24, 36, 0.88), rgba(18, 24, 36, 0.94)), url('imagenes/fondo_fantasia.png');
@@ -162,7 +162,6 @@ body {
             opacity: 0.75;
         }
 
-        /* Contenedor de la imagen adaptado a la proporción 1000x333 (Panorámica) */
         .card-cover {
             width: 100%;
             height: 120px;
@@ -394,6 +393,7 @@ body {
 
     <!-- BOTONES FLOTANTES -->
     <div class="floating-btn-container">
+        <a href="recap.html" class="home-floating-btn" title="Ver Recap Anual de Partidas"><i class="fa-solid fa-trophy"></i></a>
         <a href="../index.html" class="home-floating-btn" title="Volver al inicio"><i class="fa-solid fa-house"></i></a>
         <button class="floating-action-btn theme-toggle-btn" title="Cambiar modo claro/oscuro"><i class="fa-solid fa-moon"></i></button>
         <button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Subir arriba"><i class="fa-solid fa-arrow-up"></i></button>
@@ -506,10 +506,10 @@ body {
 
                 if (esPasada) {
                     contadorHistorico++;
-                    htmlHistorico = cardHTML + htmlHistorico; // <-- Orden inverso para el histórico (más recientes arriba)
+                    htmlHistorico = cardHTML + htmlHistorico;
                 } else {
                     contadorProximas++;
-                    htmlProximas += cardHTML; // <-- Orden cronológico normal para las próximas
+                    htmlProximas += cardHTML;
                 }
             });
 
