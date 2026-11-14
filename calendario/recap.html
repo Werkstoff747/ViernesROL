@@ -161,7 +161,7 @@
         }
 
         /* =========================================================
-            CUADRÍCULA DE ESTADÍSTICAS (FORMATO 3x2)
+            CUADRÍCULA DE ESTADÍSTICAS
             ========================================================= */
         .stats-grid {
             display: grid;
@@ -452,6 +452,7 @@
         const statsContainer = document.getElementById('statsGrid');
 
         let totalPartidas = 0;
+        let mesasLlenasCount = 0;
         const djCounts = {};
         const systemCounts = {};
         const monthCounts = {};
@@ -464,6 +465,7 @@
             const fechaStr = columns[2] || '';
             const sistema = (columns[3] || '').trim();
             const dj = (columns[4] || '').trim();
+            const ausencias = (columns[5] || '').trim();
 
             const juegoUpper = juegoOriginal.toUpperCase();
             const aventuraUpper = aventuraOriginal.toUpperCase();
@@ -478,6 +480,11 @@
                 const partes = fechaStr.split('/');
                 if (partes.length === 3 && partes[2] === selectedYear) {
                     totalPartidas++;
+
+                    // Contar "La Mesa Llena" (cuando no hay ausencias o se marca con '-')
+                    if (!ausencias || ausencias === '-' || ausencias === '0') {
+                        mesasLlenasCount++;
+                    }
 
                     // Contar DJs
                     if (dj && !dj.toUpperCase().includes('DIRECTOR')) {
@@ -568,7 +575,16 @@
                 <p class="stat-description">El mes con mayor concentración y asistencia de partidas de toda la temporada.</p>
             </div>
 
-            <!-- 5. Ranking de Directores -->
+            <!-- 5. La Mesa Llena -->
+            <div class="stat-card">
+                <div class="stat-header">
+                    <i class="fa-solid fa-users"></i> La Mesa Llena
+                </div>
+                <div class="stat-big-number">${mesasLlenasCount}</div>
+                <p class="stat-description">Partidas con asistencia perfecta donde el grupo al completo se reunió sin ninguna baja.</p>
+            </div>
+
+            <!-- 6. Ranking de Directores -->
             <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-trophy"></i> Ranking de Directores
@@ -578,7 +594,7 @@
                 </ul>
             </div>
 
-            <!-- 6. Ranking de Sistemas -->
+            <!-- 7. Ranking de Sistemas -->
             <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-list-ol"></i> Ranking de Sistemas
