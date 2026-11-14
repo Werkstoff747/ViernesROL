@@ -6,7 +6,7 @@
     <title>Los viernes, Rol - Recap Anual de Partidas</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="imagenes/dado_logo.png">
+    <link rel="icon" type="image/png" href="../imagenes/dado_logo.png">
 
     <!-- Google Fonts: Permanent Marker & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -743,6 +743,7 @@
 
         const topSystems = Object.entries(systemCounts).sort((a, b) => b[1] - a[1]);
         const sistemaRey = topSystems.length > 0 ? topSystems[0][0] : 'Varios';
+        const totalSistemasDistintos = Object.keys(systemCounts).length;
 
         const topMonths = Object.entries(monthCounts).sort((a, b) => b[1] - a[1]);
         const mesReyNum = topMonths.length > 0 ? topMonths[0][0] : '01';
@@ -775,7 +776,7 @@
                 icon: 'fa-book-skull',
                 title: 'FAVORITO',
                 value: sistemaRey,
-                desc: 'El reglamento que más ha dominado las mesas de los viernes.'
+                desc: `El reglamento favorito de entre los ${totalSistemasDistintos} sistemas diferentes jugados este año.`
             },
             {
                 tag: `TEMPORADA ${selectedYear}`,
@@ -857,7 +858,7 @@
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-book-skull"></i> Sistema Favorito</div>
                 <div class="stat-dynamic-title" title="${sistemaRey}">${sistemaRey}</div>
-                <p class="stat-description">El reglamento que más ha dominado las mesas en ${selectedYear}.</p>
+                <p class="stat-description">El reglamento favorito de entre <strong>${totalSistemasDistintos}</strong> sistemas diferentes jugados en ${selectedYear}.</p>
             </div>
 
             <!-- Fila 2, Columnas 2 y 3 -->
