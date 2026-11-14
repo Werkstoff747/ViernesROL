@@ -681,6 +681,7 @@
         const monthCounts = {};
 
         globalDataRows.forEach(row => {
+            const rowUpper = row.toUpperCase();
             const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
             
             const juegoOriginal = (columns[0] || '').trim();
@@ -695,23 +696,19 @@
             const sistemaUpper = sistema.toUpperCase();
             const djUpper = dj.toUpperCase();
 
-            // Filtro estricto para ignorar filas de plantilla vacías o pendientes ("JUEGO", "SISTEMA", "DIRECTOR DE JUEGO")
-            if (juegoUpper === 'JUEGO' || sistemaUpper === 'SISTEMA' || djUpper.includes('DIRECTOR DE JUEGO') || juegoUpper === 'EN BLANCO' || aventuraUpper === 'EN BLANCO') {
+            // 1. Detectar si la fila contiene "NO HAY ROL" en cualquier columna
+            if (rowUpper.includes('NO HAY ROL')) {
+                if (fechaStr) {
+                    const partes = fechaStr.split('/');
+                    if (partes.length === 3 && partes[2] === selectedYear) {
+                        diasSinRolCount++;
+                    }
+                }
                 return;
             }
 
-            // Detectar filas de "NO HAY ROL" para contar los viernes de descanso
-            if (fechaStr) {
-                const partes = fechaStr.split('/');
-                if (partes.length === 3 && partes[2] === selectedYear) {
-                    if (juegoUpper.includes('NO HAY ROL') || aventuraUpper.includes('NO HAY ROL') || sistemaUpper.includes('NO HAY ROL')) {
-                        diasSinRolCount++;
-                        return;
-                    }
-                }
-            }
-
-            if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'JUEGO') {
+            // 2. Filtro estricto para ignorar filas de plantilla vacías o pendientes
+            if (juegoUpper === 'JUEGO' || sistemaUpper === 'SISTEMA' || djUpper.includes('DIRECTOR DE JUEGO') || juegoUpper === 'EN BLANCO' || aventuraUpper === 'EN BLANCO' || !juegoOriginal || juegoUpper === '') {
                 return;
             }
 
@@ -772,7 +769,7 @@
                 tag: `GUARDIÁN DE LA MESA ${selectedYear}`,
                 icon: 'fa-user-shield',
                 title: 'TOP DJ',
-                value: reyDeLaMesa,
+                value: reyDeLaMessa,
                 desc: 'El director de juego que más veces ha preparado mazmorras y tramas.'
             },
             {
