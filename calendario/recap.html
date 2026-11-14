@@ -220,7 +220,6 @@
             letter-spacing: 1px;
         }
 
-        /* Ajuste para evitar que los nombres largos se corten feo */
         .stat-dynamic-title {
             font-size: 1.8rem;
             font-family: 'Permanent Marker', cursive;
@@ -468,8 +467,10 @@
 
             const juegoUpper = juegoOriginal.toUpperCase();
             const aventuraUpper = aventuraOriginal.toUpperCase();
+            const sistemaUpper = sistema.toUpperCase();
 
-            if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || juegoUpper === 'JUEGO' || aventuraUpper === 'EN BLANCO') {
+            // Ignorar filas vacías, plantillas, juegos pendientes o días sin rol
+            if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || juegoUpper === 'JUEGO' || aventuraUpper === 'EN BLANCO' || juegoUpper.includes('NO HAY ROL') || sistemaUpper.includes('NO HAY ROL')) {
                 return;
             }
 
@@ -483,8 +484,8 @@
                         djCounts[dj] = (djCounts[dj] || 0) + 1;
                     }
 
-                    // Contar Sistemas (filtrando frases que no sean juegos reales)
-                    if (sistema && sistema.toUpperCase() !== 'SISTEMA' && !sistema.toUpperCase().includes('NO HAY ROL')) {
+                    // Contar Sistemas
+                    if (sistema && sistema.toUpperCase() !== 'SISTEMA') {
                         systemCounts[sistema] = (systemCounts[sistema] || 0) + 1;
                     }
 
@@ -500,7 +501,6 @@
             return;
         }
 
-        // Datos principales
         const topDjs = Object.entries(djCounts).sort((a, b) => b[1] - a[1]);
         const reyDeLaMesa = topDjs.length > 0 ? topDjs[0][0] : 'Comunidad';
 
@@ -511,7 +511,6 @@
         const mesReyNum = topMonths.length > 0 ? topMonths[0][0] : '01';
         const mesMasRolero = nombresMeses[mesReyNum] || 'Desconocido';
 
-        // Construir HTML de las 6 tarjetas (Formato 3x2 equilibrado)
         let htmlDjsList = '';
         topDjs.slice(0, 6).forEach(([dj, count], index) => {
             htmlDjsList += `
@@ -560,7 +559,7 @@
                 <p class="stat-description">El reglamento que más ha dominado las mesas de los viernes en ${selectedYear}.</p>
             </div>
 
-            <!-- 4. El Mes Más Rolero (Sexta tarjeta añadida) -->
+            <!-- 4. El Mes Más Rolero -->
             <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-calendar-check"></i> El Mes Más Rolero
@@ -569,7 +568,7 @@
                 <p class="stat-description">El mes con mayor concentración y asistencia de partidas de toda la temporada.</p>
             </div>
 
-            <!-- 5. Ranking de Directores (Ampliado a 6 filas) -->
+            <!-- 5. Ranking de Directores -->
             <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-trophy"></i> Ranking de Directores
