@@ -65,7 +65,7 @@
         }
 
         .container {
-            max-width: 1050px;
+            max-width: 1100px;
             margin: 0 auto;
             width: 100%;
             text-align: center;
@@ -155,12 +155,24 @@
             color: var(--bg-color);
         }
 
+        /* =========================================================
+            CUADRÍCULA DE 3 COLUMNAS CON TARJETA MAESTRA VERTICAL
+            ========================================================= */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
             margin-bottom: 50px;
             text-align: left;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-card.tall-card {
+                grid-row: auto !important;
+            }
         }
 
         .stat-card {
@@ -174,6 +186,12 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+        }
+
+        /* Tarjeta maestra vertical que ocupa 2 filas en la columna 1 */
+        .stat-card.tall-card {
+            grid-row: span 2;
+            justify-content: space-between;
         }
 
         .stat-card::before {
@@ -193,29 +211,27 @@
         .stat-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             color: var(--accent-gold);
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
         }
 
         .stat-header i {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
-        /* ESTILO ÉPICO Y MODAL (SIN ROTULADOR EN TARJETAS WEB) */
         .stat-big-number {
-            font-size: 3rem;
+            font-size: 2.6rem;
             font-family: 'Inter', sans-serif;
             font-weight: 900;
             color: var(--marker-red);
             line-height: 1;
             letter-spacing: -1px;
-            text-shadow: 0 2px 10px rgba(230, 57, 70, 0.2);
         }
 
         .stat-dynamic-title {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-family: 'Inter', sans-serif;
             font-weight: 900;
             color: var(--marker-red);
@@ -226,39 +242,16 @@
         }
 
         .stat-description {
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             color: var(--text-muted);
             line-height: 1.4;
-            margin-top: auto;
         }
 
-        .dual-stat-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            gap: 10px;
-            margin: 5px 0;
-        }
-
-        .dual-stat-item {
-            text-align: center;
-            flex: 1;
-        }
-
-        .dual-stat-divider {
-            width: 1px;
-            height: 55px;
+        .card-section-divider {
+            width: 100%;
+            height: 1px;
             background-color: var(--card-border);
-        }
-
-        .dual-stat-value {
-            font-size: 1.5rem;
-            font-family: 'Inter', sans-serif;
-            font-weight: 900;
-            color: var(--marker-red);
-            line-height: 1.1;
-            word-break: break-word;
-            text-transform: uppercase;
+            margin: 5px 0;
         }
 
         .ranking-list {
@@ -276,7 +269,7 @@
             padding: 7px 12px;
             border-radius: 6px;
             border: 1px solid var(--card-border);
-            font-size: 0.88rem;
+            font-size: 0.85rem;
         }
 
         .ranking-item span:first-child {
@@ -291,11 +284,11 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: 700;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
         }
 
         /* =========================================================
-            ESTILOS AVANZADOS STORIES (ESTILO SPOTIFY WRAPPED / YOUTUBE)
+            ESTILOS STORIES (SPOTIFY / YOUTUBE WRAPPED)
             ========================================================= */
         .modal-overlay {
             position: fixed;
@@ -333,7 +326,6 @@
             text-align: center;
         }
 
-        /* Luces de fondo dinámicas estilo Wrapped */
         .story-card::before {
             content: '';
             position: absolute;
@@ -788,7 +780,7 @@
         });
 
         let htmlSystemsList = '';
-        topSystems.slice(0, 5).forEach(([sys, count], index) => {
+        topSystems.slice(0, 6).forEach(([sys, count], index) => {
             htmlSystemsList += `
                 <li class="ranking-item">
                     <span>${index + 1}. ${sys}</span>
@@ -797,41 +789,54 @@
             `;
         });
 
+        // Estructura de la rejilla con la tarjeta maestra vertical en la columna 1
         statsContainer.innerHTML = `
-            <div class="stat-card highlight">
-                <div class="stat-header"><i class="fa-solid fa-dice-d20"></i> Sesiones Registradas</div>
-                <div class="stat-big-number">${totalPartidas}</div>
-                <p class="stat-description">Total de viernes de rol épicos celebrados en el año ${selectedYear}.</p>
+            <!-- TARJETA MAESTRA VERTICAL (Columna 1, span 2 filas, dividida en 3 tramos) -->
+            <div class="stat-card tall-card highlight">
+                <div>
+                    <div class="stat-header"><i class="fa-solid fa-dice-d20"></i> Sesiones Registradas</div>
+                    <div class="stat-big-number">${totalPartidas}</div>
+                    <p class="stat-description" style="margin-top: 4px;">Viernes de rol épicos celebrados en ${selectedYear}.</p>
+                </div>
+
+                <div class="card-section-divider"></div>
+
+                <div>
+                    <div class="stat-header"><i class="fa-solid fa-calendar-check"></i> Mes Más Rolero</div>
+                    <div class="stat-dynamic-title" style="font-size: 1.4rem;" title="${mesMasRolero}">${mesMasRolero}</div>
+                    <p class="stat-description" style="margin-top: 4px;">Mes con mayor concentración de partidas.</p>
+                </div>
+
+                <div class="card-section-divider"></div>
+
+                <div>
+                    <div class="stat-header"><i class="fa-solid fa-users"></i> La Mesa Llena</div>
+                    <div class="stat-big-number" style="font-size: 2.2rem;">${mesasLlenasCount}</div>
+                    <p class="stat-description" style="margin-top: 4px;">Partidas con asistencia perfecta sin ninguna baja.</p>
+                </div>
             </div>
+
+            <!-- Columna 2, Fila 1 -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-user-shield"></i> El Guardián de la Mesa</div>
                 <div class="stat-dynamic-title" title="${reyDeLaMesa}">${reyDeLaMesa}</div>
                 <p class="stat-description">El director de juego que más veces ha dirigido este año.</p>
             </div>
+
+            <!-- Columna 3, Fila 1 -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-book-skull"></i> Sistema Favorito</div>
                 <div class="stat-dynamic-title" title="${sistemaRey}">${sistemaRey}</div>
                 <p class="stat-description">El reglamento que más ha dominado las mesas en ${selectedYear}.</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-header"><i class="fa-solid fa-medal"></i> Hitos de Temporada</div>
-                <div class="dual-stat-container">
-                    <div class="dual-stat-item">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">MES ROLERO</div>
-                        <div class="dual-stat-value" title="${mesMasRolero}">${mesMasRolero}</div>
-                    </div>
-                    <div class="dual-stat-divider"></div>
-                    <div class="dual-stat-item">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">MESA LLENA</div>
-                        <div class="dual-stat-value">${mesasLlenasCount}</div>
-                    </div>
-                </div>
-                <p class="stat-description">El mes con mayor actividad y las partidas con asistencia perfecta.</p>
-            </div>
+
+            <!-- Columna 2, Fila 2 -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-trophy"></i> Ranking de Directores</div>
                 <ul class="ranking-list">${htmlDjsList || '<li class="ranking-item"><span>Sin datos</span></li>'}</ul>
             </div>
+
+            <!-- Columna 3, Fila 2 (Ampliado a 6 líneas para simetría perfecta) -->
             <div class="stat-card">
                 <div class="stat-header"><i class="fa-solid fa-list-ol"></i> Ranking de Sistemas</div>
                 <ul class="ranking-list">${htmlSystemsList || '<li class="ranking-item"><span>Sin datos</span></li>'}</ul>
