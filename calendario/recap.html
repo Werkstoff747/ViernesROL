@@ -11,15 +11,15 @@
     <!-- Google Fonts: Permanent Marker & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Permanent+Marker&display=swap" rel="stylesheet">
 
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Librería html2canvas para exportar la story como imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
-        /* =========================================================
-            VARIABLES DE TEMA (INTERFAZ DE ROL CLÁSICA)
-            ========================================================= */
         :root {
             --bg-color: #121824;
             --card-bg: #1A2333;
@@ -71,9 +71,6 @@
             text-align: center;
         }
 
-        /* =========================================================
-            CABECERA Y SELECTOR DE AÑO COMPACTO
-            ========================================================= */
         header {
             padding: 30px 20px;
             border-bottom: 2px solid var(--header-border);
@@ -117,7 +114,6 @@
             margin: 2px 0;
         }
 
-        /* Barra de control de año */
         .recap-controls {
             display: flex;
             justify-content: center;
@@ -138,7 +134,6 @@
             font-size: 0.9rem;
             font-weight: 600;
             color: var(--text-muted);
-            font-family: 'Inter', sans-serif;
         }
 
         .year-select {
@@ -160,9 +155,6 @@
             color: var(--bg-color);
         }
 
-        /* =========================================================
-            CUADRÍCULA DE ESTADÍSTICAS
-            ========================================================= */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -203,40 +195,72 @@
             align-items: center;
             gap: 12px;
             color: var(--accent-gold);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            font-family: 'Inter', sans-serif;
         }
 
         .stat-header i {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
         }
 
+        /* ESTILO ÉPICO Y MODAL (SIN ROTULADOR EN TARJETAS WEB) */
         .stat-big-number {
-            font-size: 2.8rem;
-            font-family: 'Permanent Marker', cursive;
+            font-size: 3rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
             color: var(--marker-red);
             line-height: 1;
-            letter-spacing: 1px;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 10px rgba(230, 57, 70, 0.2);
         }
 
         .stat-dynamic-title {
             font-size: 1.8rem;
-            font-family: 'Permanent Marker', cursive;
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
             color: var(--marker-red);
             line-height: 1.1;
-            letter-spacing: 1px;
+            letter-spacing: -0.5px;
             word-break: break-word;
+            text-transform: uppercase;
         }
 
         .stat-description {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: var(--text-muted);
             line-height: 1.4;
             margin-top: auto;
         }
 
-        /* Rankings en listas dentro de tarjetas */
+        .dual-stat-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        .dual-stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .dual-stat-divider {
+            width: 1px;
+            height: 55px;
+            background-color: var(--card-border);
+        }
+
+        .dual-stat-value {
+            font-size: 1.5rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            color: var(--marker-red);
+            line-height: 1.1;
+            word-break: break-word;
+            text-transform: uppercase;
+        }
+
         .ranking-list {
             list-style: none;
             display: flex;
@@ -271,8 +295,188 @@
         }
 
         /* =========================================================
-            BOTONES FLOTANTES Y FOOTER
+            ESTILOS AVANZADOS STORIES (ESTILO SPOTIFY WRAPPED / YOUTUBE)
             ========================================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 15px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .story-card {
+            width: 100%;
+            max-width: 380px;
+            height: 650px;
+            background: linear-gradient(145deg, #1f293d 0%, #090d14 100%);
+            border: 3px solid var(--accent-gold);
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 80px rgba(217, 167, 74, 0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        /* Luces de fondo dinámicas estilo Wrapped */
+        .story-card::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #E63946, #D9A74A);
+            border-radius: 50%;
+            filter: blur(55px);
+            opacity: 0.4;
+            z-index: 1;
+        }
+
+        .story-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+        }
+
+        .story-header-top {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.15rem;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .story-center-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            flex-grow: 1;
+        }
+
+        .story-big-icon {
+            font-size: 4rem;
+            color: var(--marker-red);
+            filter: drop-shadow(0 6px 15px rgba(230, 57, 70, 0.5));
+        }
+
+        .story-title-label {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .story-main-value {
+            font-size: 3rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1.1;
+            text-shadow: 0 4px 20px rgba(230, 57, 70, 0.5);
+            word-break: break-word;
+            text-transform: uppercase;
+        }
+
+        .story-subtext {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            padding: 0 10px;
+            font-weight: 500;
+        }
+
+        .story-footer-brand {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 0.95rem;
+            color: var(--accent-gold);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--accent-gold);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-btn:hover {
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
+        }
+
+        .modal-btn.primary {
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
+        }
+
+        .modal-btn.primary:hover {
+            background-color: var(--accent-gold-hover);
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            background: var(--marker-red);
+        }
+
         .floating-btn-container {
             position: fixed;
             bottom: 25px;
@@ -341,15 +545,18 @@
             </div>
         </header>
 
-        <!-- Selector de Año Compacto -->
-        <div class="recap-controls">
-            <label for="yearSelect"><i class="fa-solid fa-calendar-days" style="margin-right: 6px;"></i> Año:</label>
-            <select id="yearSelect" class="year-select" onchange="actualizarRecap()">
-                <!-- Se rellenará automáticamente por JS -->
-            </select>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 40px;">
+            <div class="recap-controls" style="margin: 0;">
+                <label for="yearSelect"><i class="fa-solid fa-calendar-days" style="margin-right: 6px;"></i> Año:</label>
+                <select id="yearSelect" class="year-select" onchange="actualizarRecap()">
+                </select>
+            </div>
+
+            <button onclick="abrirStoryModal()" class="modal-btn primary" style="padding: 12px 22px; border-radius: 50px;">
+                <i class="fa-solid fa-camera-retro"></i> Modo Story (Wrapped)
+            </button>
         </div>
 
-        <!-- Contenedor Dinámico de Estadísticas -->
         <main class="stats-grid" id="statsGrid">
             <p style="color: var(--text-muted); grid-column: 1 / -1; text-align: center;">Invocando analíticas de la comunidad...</p>
         </main>
@@ -359,7 +566,24 @@
         </footer>
     </div>
 
-    <!-- BOTONES FLOTANTES -->
+    <!-- MODAL STORIES -->
+    <div class="modal-overlay" id="storyModal">
+        <button class="close-modal-btn" onclick="cerrarStoryModal()"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="story-card" id="captureStoryCard">
+                <div class="story-content" id="storyContentArea">
+                </div>
+            </div>
+
+            <div class="modal-nav-container">
+                <button class="modal-btn" onclick="cambiarSlide(-1)"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                <button class="modal-btn primary" onclick="descargarStoryImagen()"><i class="fa-solid fa-download"></i> Descargar Story</button>
+                <button class="modal-btn" onclick="cambiarSlide(1)">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
     <div class="floating-btn-container">
         <a href="../index.html" class="home-floating-btn" title="Volver al inicio"><i class="fa-solid fa-house"></i></a>
         <button class="floating-action-btn theme-toggle-btn" title="Cambiar modo claro/oscuro"><i class="fa-solid fa-moon"></i></button>
@@ -369,6 +593,8 @@
 <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?gid=432079409&single=true&output=csv';
     let globalDataRows = [];
+    let currentSlideIndex = 0;
+    let storySlidesData = [];
 
     const nombresMeses = {
         '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril',
@@ -471,7 +697,6 @@
             const aventuraUpper = aventuraOriginal.toUpperCase();
             const sistemaUpper = sistema.toUpperCase();
 
-            // Ignorar filas vacías, plantillas, juegos pendientes o días sin rol
             if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || juegoUpper === 'JUEGO' || aventuraUpper === 'EN BLANCO' || juegoUpper.includes('NO HAY ROL') || sistemaUpper.includes('NO HAY ROL')) {
                 return;
             }
@@ -481,22 +706,18 @@
                 if (partes.length === 3 && partes[2] === selectedYear) {
                     totalPartidas++;
 
-                    // Contar "La Mesa Llena" (cuando no hay ausencias o se marca con '-')
                     if (!ausencias || ausencias === '-' || ausencias === '0') {
                         mesasLlenasCount++;
                     }
 
-                    // Contar DJs
                     if (dj && !dj.toUpperCase().includes('DIRECTOR')) {
                         djCounts[dj] = (djCounts[dj] || 0) + 1;
                     }
 
-                    // Contar Sistemas
                     if (sistema && sistema.toUpperCase() !== 'SISTEMA') {
                         systemCounts[sistema] = (systemCounts[sistema] || 0) + 1;
                     }
 
-                    // Contar Meses
                     const mesNum = partes[1];
                     monthCounts[mesNum] = (monthCounts[mesNum] || 0) + 1;
                 }
@@ -517,6 +738,44 @@
         const topMonths = Object.entries(monthCounts).sort((a, b) => b[1] - a[1]);
         const mesReyNum = topMonths.length > 0 ? topMonths[0][0] : '01';
         const mesMasRolero = nombresMeses[mesReyNum] || 'Desconocido';
+
+        storySlidesData = [
+            {
+                tag: `RECAP ANUAL ${selectedYear}`,
+                icon: 'fa-dice-d20',
+                title: 'SESIONES',
+                value: totalPartidas,
+                desc: 'Viernes de rol épicos celebrados y apuntados en el calendario.'
+            },
+            {
+                tag: `GUARDIÁN DE LA MESA ${selectedYear}`,
+                icon: 'fa-user-shield',
+                title: 'TOP DJ',
+                value: reyDeLaMesa,
+                desc: 'El director de juego que más veces ha preparado mazmorras y tramas.'
+            },
+            {
+                tag: `SISTEMA ESTRELLA ${selectedYear}`,
+                icon: 'fa-book-skull',
+                title: 'FAVORITO',
+                value: sistemaRey,
+                desc: 'El reglamento que más ha dominado las mesas de los viernes.'
+            },
+            {
+                tag: `TEMPORADA ${selectedYear}`,
+                icon: 'fa-calendar-check',
+                title: 'MES MÁS ROLERO',
+                value: mesMasRolero,
+                desc: 'El mes con mayor concentración y asistencia de partidas.'
+            },
+            {
+                tag: `ASISTENCIA PERFECTA ${selectedYear}`,
+                icon: 'fa-users',
+                title: 'MESA LLENA',
+                value: mesasLlenasCount,
+                desc: 'Partidas donde el grupo al completo se reunió sin ninguna baja.'
+            }
+        ];
 
         let htmlDjsList = '';
         topDjs.slice(0, 6).forEach(([dj, count], index) => {
@@ -539,71 +798,107 @@
         });
 
         statsContainer.innerHTML = `
-            <!-- 1. Sesiones Registradas -->
             <div class="stat-card highlight">
-                <div class="stat-header">
-                    <i class="fa-solid fa-dice-d20"></i> Sesiones Registradas
-                </div>
+                <div class="stat-header"><i class="fa-solid fa-dice-d20"></i> Sesiones Registradas</div>
                 <div class="stat-big-number">${totalPartidas}</div>
-                <p class="stat-description">Total de viernes de rol épicos celebrados y apuntados en el calendario durante el año ${selectedYear}.</p>
+                <p class="stat-description">Total de viernes de rol épicos celebrados en el año ${selectedYear}.</p>
             </div>
-
-            <!-- 2. El Guardián de la Mesa -->
             <div class="stat-card">
-                <div class="stat-header">
-                    <i class="fa-solid fa-user-shield"></i> El Guardián de la Mesa
-                </div>
+                <div class="stat-header"><i class="fa-solid fa-user-shield"></i> El Guardián de la Mesa</div>
                 <div class="stat-dynamic-title" title="${reyDeLaMesa}">${reyDeLaMesa}</div>
-                <p class="stat-description">El director de juego que más veces ha preparado mazmorras y tramas este año.</p>
+                <p class="stat-description">El director de juego que más veces ha dirigido este año.</p>
             </div>
-
-            <!-- 3. Sistema Favorito -->
             <div class="stat-card">
-                <div class="stat-header">
-                    <i class="fa-solid fa-book-skull"></i> Sistema Favorito
-                </div>
+                <div class="stat-header"><i class="fa-solid fa-book-skull"></i> Sistema Favorito</div>
                 <div class="stat-dynamic-title" title="${sistemaRey}">${sistemaRey}</div>
-                <p class="stat-description">El reglamento que más ha dominado las mesas de los viernes en ${selectedYear}.</p>
+                <p class="stat-description">El reglamento que más ha dominado las mesas en ${selectedYear}.</p>
             </div>
-
-            <!-- 4. El Mes Más Rolero -->
             <div class="stat-card">
-                <div class="stat-header">
-                    <i class="fa-solid fa-calendar-check"></i> El Mes Más Rolero
+                <div class="stat-header"><i class="fa-solid fa-medal"></i> Hitos de Temporada</div>
+                <div class="dual-stat-container">
+                    <div class="dual-stat-item">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">MES ROLERO</div>
+                        <div class="dual-stat-value" title="${mesMasRolero}">${mesMasRolero}</div>
+                    </div>
+                    <div class="dual-stat-divider"></div>
+                    <div class="dual-stat-item">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">MESA LLENA</div>
+                        <div class="dual-stat-value">${mesasLlenasCount}</div>
+                    </div>
                 </div>
-                <div class="stat-dynamic-title" title="${mesMasRolero}">${mesMasRolero}</div>
-                <p class="stat-description">El mes con mayor concentración y asistencia de partidas de toda la temporada.</p>
+                <p class="stat-description">El mes con mayor actividad y las partidas con asistencia perfecta.</p>
             </div>
-
-            <!-- 5. La Mesa Llena -->
             <div class="stat-card">
-                <div class="stat-header">
-                    <i class="fa-solid fa-users"></i> La Mesa Llena
-                </div>
-                <div class="stat-big-number">${mesasLlenasCount}</div>
-                <p class="stat-description">Partidas con asistencia perfecta donde el grupo al completo se reunió sin ninguna baja.</p>
+                <div class="stat-header"><i class="fa-solid fa-trophy"></i> Ranking de Directores</div>
+                <ul class="ranking-list">${htmlDjsList || '<li class="ranking-item"><span>Sin datos</span></li>'}</ul>
             </div>
-
-            <!-- 6. Ranking de Directores -->
             <div class="stat-card">
-                <div class="stat-header">
-                    <i class="fa-solid fa-trophy"></i> Ranking de Directores
-                </div>
-                <ul class="ranking-list">
-                    ${htmlDjsList || '<li class="ranking-item"><span>Sin datos de DJs</span></li>'}
-                </ul>
-            </div>
-
-            <!-- 7. Ranking de Sistemas -->
-            <div class="stat-card">
-                <div class="stat-header">
-                    <i class="fa-solid fa-list-ol"></i> Ranking de Sistemas
-                </div>
-                <ul class="ranking-list">
-                    ${htmlSystemsList || '<li class="ranking-item"><span>Sin datos de sistemas</span></li>'}
-                </ul>
+                <div class="stat-header"><i class="fa-solid fa-list-ol"></i> Ranking de Sistemas</div>
+                <ul class="ranking-list">${htmlSystemsList || '<li class="ranking-item"><span>Sin datos</span></li>'}</ul>
             </div>
         `;
+    }
+
+    function abrirStoryModal() {
+        if (storySlidesData.length === 0) return;
+        currentSlideIndex = 0;
+        renderizarSlideStory();
+        document.getElementById('storyModal').classList.add('active');
+    }
+
+    function cerrarStoryModal() {
+        document.getElementById('storyModal').classList.remove('active');
+    }
+
+    function cambiarSlide(direccion) {
+        currentSlideIndex += direccion;
+        if (currentSlideIndex < 0) {
+            currentSlideIndex = storySlidesData.length - 1;
+        } else if (currentSlideIndex >= storySlidesData.length) {
+            currentSlideIndex = 0;
+        }
+        renderizarSlideStory();
+    }
+
+    function renderizarSlideStory() {
+        const slide = storySlidesData[currentSlideIndex];
+        const contentArea = document.getElementById('storyContentArea');
+
+        contentArea.innerHTML = `
+            <div class="story-header-top">
+                <i class="fa-solid fa-dice-d20" style="margin-right: 5px;"></i> Los viernes, Rol
+            </div>
+            
+            <div class="story-center-body">
+                <div class="story-title-label">${slide.tag}</div>
+                <div class="story-big-icon"><i class="fa-solid ${slide.icon}"></i></div>
+                <div class="story-main-value" style="font-size: ${slide.value.toString().length > 10 ? '1.8rem' : '2.8rem'};">${slide.value}</div>
+                <p class="story-subtext">${slide.desc}</p>
+            </div>
+
+            <div class="story-footer-brand">
+                <span>#ViernesRol</span>
+                <span>Zaragoza 🎲</span>
+            </div>
+        `;
+    }
+
+    function descargarStoryImagen() {
+        const cardElement = document.getElementById('captureStoryCard');
+        
+        html2canvas(cardElement, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `ViernesRol-Recap-${currentSlideIndex + 1}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            console.error('Error al generar la imagen:', err);
+            alert('No se pudo generar la imagen para exportar.');
+        });
     }
 
     const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
