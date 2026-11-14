@@ -183,13 +183,13 @@
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 25px;
+            padding: 22px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             backdrop-filter: blur(5px);
         }
 
@@ -218,16 +218,16 @@
             align-items: center;
             gap: 10px;
             color: var(--accent-gold);
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
         }
 
         .stat-header i {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
 
         .stat-big-number {
-            font-size: 2.6rem;
+            font-size: 2.2rem;
             font-family: 'Inter', sans-serif;
             font-weight: 900;
             color: var(--marker-red);
@@ -236,7 +236,7 @@
         }
 
         .stat-dynamic-title {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-family: 'Inter', sans-serif;
             font-weight: 900;
             color: var(--marker-red);
@@ -247,16 +247,16 @@
         }
 
         .stat-description {
-            font-size: 0.88rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         .card-section-divider {
             width: 100%;
             height: 1px;
             background-color: var(--card-border);
-            margin: 5px 0;
+            margin: 2px 0;
         }
 
         .ranking-list {
@@ -675,6 +675,7 @@
         const statsContainer = document.getElementById('statsGrid');
 
         let totalPartidas = 0;
+        let diasSinRolCount = 0;
         let mesasLlenasCount = 0;
         const djCounts = {};
         const systemCounts = {};
@@ -694,7 +695,18 @@
             const aventuraUpper = aventuraOriginal.toUpperCase();
             const sistemaUpper = sistema.toUpperCase();
 
-            if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || juegoUpper === 'JUEGO' || aventuraUpper === 'EN BLANCO' || juegoUpper.includes('NO HAY ROL') || sistemaUpper.includes('NO HAY ROL')) {
+            // Detectar filas de "NO HAY ROL" para contar los viernes que se ha fallado/descansado
+            if (fechaStr) {
+                const partes = fechaStr.split('/');
+                if (partes.length === 3 && partes[2] === selectedYear) {
+                    if (juegoUpper.includes('NO HAY ROL') || aventuraUpper.includes('NO HAY ROL') || sistemaUpper.includes('NO HAY ROL')) {
+                        diasSinRolCount++;
+                        return; // No computa como partida jugada
+                    }
+                }
+            }
+
+            if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || juegoUpper === 'JUEGO' || aventuraUpper === 'EN BLANCO') {
                 return;
             }
 
@@ -721,8 +733,8 @@
             }
         });
 
-        if (totalPartidas === 0) {
-            statsContainer.innerHTML = `<p style="color: var(--text-muted); grid-column: 1 / -1; text-align: center;">No hay registros de partidas finalizadas para el año ${selectedYear}.</p>`;
+        if (totalPartidas === 0 && diasSinRolCount === 0) {
+            statsContainer.innerHTML = `<p style="color: var(--text-muted); grid-column: 1 / -1; text-align: center;">No hay registros para el año ${selectedYear}.</p>`;
             return;
         }
 
@@ -743,6 +755,13 @@
                 title: 'SESIONES',
                 value: totalPartidas,
                 desc: 'Viernes de rol épicos celebrados y apuntados en el calendario.'
+            },
+            {
+                tag: `DESCANSO DE HÉROES ${selectedYear}`,
+                icon: 'fa-mug-hot',
+                title: 'VIERNES SIN ROL',
+                value: diasSinRolCount,
+                desc: 'Viernes de tregua donde las tabernas cerraron y no hubo partida.'
             },
             {
                 tag: `GUARDIÁN DE LA MESA ${selectedYear}`,
@@ -795,28 +814,36 @@
         });
 
         statsContainer.innerHTML = `
-            <!-- TARJETA MAESTRA VERTICAL (3 tramos) -->
+            <!-- TARJETA MAESTRA VERTICAL (4 tramos) -->
             <div class="stat-card tall-card highlight">
                 <div>
                     <div class="stat-header"><i class="fa-solid fa-dice-d20"></i> Sesiones Registradas</div>
                     <div class="stat-big-number">${totalPartidas}</div>
-                    <p class="stat-description" style="margin-top: 4px;">Viernes de rol épicos celebrados en ${selectedYear}.</p>
+                    <p class="stat-description">Viernes de rol épicos celebrados en ${selectedYear}.</p>
+                </div>
+
+                <div class="card-section-divider"></div>
+
+                <div>
+                    <div class="stat-header"><i class="fa-solid fa-mug-hot"></i> Viernes Sin Rol</div>
+                    <div class="stat-big-number" style="font-size: 1.8rem;">${diasSinRolCount}</div>
+                    <p class="stat-description">Jornadas de tregua y descanso en la taberna.</p>
                 </div>
 
                 <div class="card-section-divider"></div>
 
                 <div>
                     <div class="stat-header"><i class="fa-solid fa-calendar-check"></i> Mes Más Rolero</div>
-                    <div class="stat-dynamic-title" style="font-size: 1.4rem;" title="${mesMasRolero}">${mesMasRolero}</div>
-                    <p class="stat-description" style="margin-top: 4px;">Mes con mayor concentración de partidas.</p>
+                    <div class="stat-dynamic-title" style="font-size: 1.2rem;" title="${mesMasRolero}">${mesMasRolero}</div>
+                    <p class="stat-description">Mes con mayor concentración de partidas.</p>
                 </div>
 
                 <div class="card-section-divider"></div>
 
                 <div>
                     <div class="stat-header"><i class="fa-solid fa-users"></i> La Mesa Llena</div>
-                    <div class="stat-big-number" style="font-size: 2.2rem;">${mesasLlenasCount}</div>
-                    <p class="stat-description" style="margin-top: 4px;">Partidas con asistencia perfecta sin ninguna baja.</p>
+                    <div class="stat-big-number" style="font-size: 1.8rem;">${mesasLlenasCount}</div>
+                    <p class="stat-description">Partidas con asistencia perfecta sin bajas.</p>
                 </div>
             </div>
 
