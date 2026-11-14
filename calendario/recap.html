@@ -65,7 +65,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1050px;
             margin: 0 auto;
             width: 100%;
             text-align: center;
@@ -161,11 +161,11 @@
         }
 
         /* =========================================================
-            CUADRÍCULA DE ESTADÍSTICAS (WAPPED CARDS)
+            CUADRÍCULA DE ESTADÍSTICAS (FORMATO 3x2)
             ========================================================= */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
             gap: 25px;
             margin-bottom: 50px;
             text-align: left;
@@ -220,10 +220,21 @@
             letter-spacing: 1px;
         }
 
+        /* Ajuste para evitar que los nombres largos se corten feo */
+        .stat-dynamic-title {
+            font-size: 1.8rem;
+            font-family: 'Permanent Marker', cursive;
+            color: var(--marker-red);
+            line-height: 1.1;
+            letter-spacing: 1px;
+            word-break: break-word;
+        }
+
         .stat-description {
             font-size: 0.95rem;
             color: var(--text-muted);
             line-height: 1.4;
+            margin-top: auto;
         }
 
         /* Rankings en listas dentro de tarjetas */
@@ -231,7 +242,7 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .ranking-item {
@@ -239,10 +250,10 @@
             justify-content: space-between;
             align-items: center;
             background-color: var(--bg-color);
-            padding: 8px 12px;
+            padding: 7px 12px;
             border-radius: 6px;
             border: 1px solid var(--card-border);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
         }
 
         .ranking-item span:first-child {
@@ -257,7 +268,7 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: 700;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
 
         /* =========================================================
@@ -360,6 +371,12 @@
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS5QhSw_1brpDqkNgWhBBWCMZhMrOVmQCdrWtKlHeFEMhp-Nym_3F6f61YqAZjciacmAxKxwqw5XFqY/pub?gid=432079409&single=true&output=csv';
     let globalDataRows = [];
 
+    const nombresMeses = {
+        '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril',
+        '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto',
+        '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
         initTheme();
         cargarDatosYGenerarRecap();
@@ -387,9 +404,8 @@
                 return;
             }
 
-            // Extraer años únicos de las fechas de las partidas
             const anosDisponibles = new Set();
-            const currentYearStr = "2026"; // Año actual por defecto
+            const currentYearStr = "2026";
 
             globalDataRows.forEach(row => {
                 const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
@@ -405,7 +421,6 @@
             const yearSelect = document.getElementById('yearSelect');
             yearSelect.innerHTML = '';
 
-            // Ordenar años de más reciente a más antiguo
             const anosOrdenados = Array.from(anosDisponibles).sort((a, b) => b - a);
 
             if (anosOrdenados.length === 0) {
@@ -419,7 +434,6 @@
                 yearSelect.appendChild(opt);
             });
 
-            // Establecer por defecto el año actual (2026) si existe en la lista, sino el primero disponible
             if (anosOrdenados.includes(currentYearStr)) {
                 yearSelect.value = currentYearStr;
             } else {
@@ -441,6 +455,7 @@
         let totalPartidas = 0;
         const djCounts = {};
         const systemCounts = {};
+        const monthCounts = {};
 
         globalDataRows.forEach(row => {
             const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/^"|"$/g, '').trim());
@@ -454,26 +469,28 @@
             const juegoUpper = juegoOriginal.toUpperCase();
             const aventuraUpper = aventuraOriginal.toUpperCase();
 
-            // Ignorar filas vacías, de plantilla o de juego genérico sin decidir
             if (!juegoOriginal || juegoUpper === '' || juegoUpper === 'EN BLANCO' || juegoUpper === 'SISTEMA' || juegoUpper === 'JUEGO' || aventuraUpper === 'EN BLANCO') {
                 return;
             }
 
-            // Filtrar por año seleccionado
             if (fechaStr) {
                 const partes = fechaStr.split('/');
                 if (partes.length === 3 && partes[2] === selectedYear) {
                     totalPartidas++;
 
-                    // Contar DJs (ignorando si pone Director / vacíos)
+                    // Contar DJs
                     if (dj && !dj.toUpperCase().includes('DIRECTOR')) {
                         djCounts[dj] = (djCounts[dj] || 0) + 1;
                     }
 
-                    // Contar Sistemas
-                    if (sistema && sistema.toUpperCase() !== 'SISTEMA') {
+                    // Contar Sistemas (filtrando frases que no sean juegos reales)
+                    if (sistema && sistema.toUpperCase() !== 'SISTEMA' && !sistema.toUpperCase().includes('NO HAY ROL')) {
                         systemCounts[sistema] = (systemCounts[sistema] || 0) + 1;
                     }
+
+                    // Contar Meses
+                    const mesNum = partes[1];
+                    monthCounts[mesNum] = (monthCounts[mesNum] || 0) + 1;
                 }
             }
         });
@@ -483,17 +500,20 @@
             return;
         }
 
-        // Ordenar DJs por número de partidas
+        // Datos principales
         const topDjs = Object.entries(djCounts).sort((a, b) => b[1] - a[1]);
         const reyDeLaMesa = topDjs.length > 0 ? topDjs[0][0] : 'Comunidad';
 
-        // Ordenar Sistemas por número de partidas
         const topSystems = Object.entries(systemCounts).sort((a, b) => b[1] - a[1]);
         const sistemaRey = topSystems.length > 0 ? topSystems[0][0] : 'Varios';
 
-        // Construir HTML de las tarjetas de estadísticas
+        const topMonths = Object.entries(monthCounts).sort((a, b) => b[1] - a[1]);
+        const mesReyNum = topMonths.length > 0 ? topMonths[0][0] : '01';
+        const mesMasRolero = nombresMeses[mesReyNum] || 'Desconocido';
+
+        // Construir HTML de las 6 tarjetas (Formato 3x2 equilibrado)
         let htmlDjsList = '';
-        topDjs.slice(0, 5).forEach(([dj, count], index) => {
+        topDjs.slice(0, 6).forEach(([dj, count], index) => {
             htmlDjsList += `
                 <li class="ranking-item">
                     <span>${index + 1}. ${dj}</span>
@@ -513,7 +533,7 @@
         });
 
         statsContainer.innerHTML = `
-            <!-- Total de Partidas -->
+            <!-- 1. Sesiones Registradas -->
             <div class="stat-card highlight">
                 <div class="stat-header">
                     <i class="fa-solid fa-dice-d20"></i> Sesiones Registradas
@@ -522,26 +542,35 @@
                 <p class="stat-description">Total de viernes de rol épicos celebrados y apuntados en el calendario durante el año ${selectedYear}.</p>
             </div>
 
-            <!-- El DJ con más partidas -->
+            <!-- 2. El Guardián de la Mesa -->
             <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-user-shield"></i> El Guardián de la Mesa
                 </div>
-                <div class="stat-big-number" style="font-size: 2.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${reyDeLaMesa}">${reyDeLaMesa}</div>
+                <div class="stat-dynamic-title" title="${reyDeLaMesa}">${reyDeLaMesa}</div>
                 <p class="stat-description">El director de juego que más veces ha preparado mazmorras y tramas este año.</p>
             </div>
 
-            <!-- El Sistema más jugado -->
+            <!-- 3. Sistema Favorito -->
             <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-book-skull"></i> Sistema Favorito
                 </div>
-                <div class="stat-big-number" style="font-size: 2.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${sistemaRey}">${sistemaRey}</div>
+                <div class="stat-dynamic-title" title="${sistemaRey}">${sistemaRey}</div>
                 <p class="stat-description">El reglamento que más ha dominado las mesas de los viernes en ${selectedYear}.</p>
             </div>
 
-            <!-- Ranking de Directores -->
-            <div class="stat-card" style="grid-column: span 1;">
+            <!-- 4. El Mes Más Rolero (Sexta tarjeta añadida) -->
+            <div class="stat-card">
+                <div class="stat-header">
+                    <i class="fa-solid fa-calendar-check"></i> El Mes Más Rolero
+                </div>
+                <div class="stat-dynamic-title" title="${mesMasRolero}">${mesMasRolero}</div>
+                <p class="stat-description">El mes con mayor concentración y asistencia de partidas de toda la temporada.</p>
+            </div>
+
+            <!-- 5. Ranking de Directores (Ampliado a 6 filas) -->
+            <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-trophy"></i> Ranking de Directores
                 </div>
@@ -550,8 +579,8 @@
                 </ul>
             </div>
 
-            <!-- Ranking de Sistemas -->
-            <div class="stat-card" style="grid-column: span 1;">
+            <!-- 6. Ranking de Sistemas -->
+            <div class="stat-card">
                 <div class="stat-header">
                     <i class="fa-solid fa-list-ol"></i> Ranking de Sistemas
                 </div>
@@ -566,7 +595,6 @@
 
     function actualizarIconoTema() {
         const esClaro = document.body.classList.contains("light-mode");
-        themeToggleBtns.buttonText = '';
         themeToggleBtns.forEach(btn => {
             if (esClaro) {
                 btn.innerHTML = '<i class="fa-regular fa-sun"></i>';
