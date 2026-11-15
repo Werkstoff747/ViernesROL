@@ -321,6 +321,11 @@
             color: #85e89d;
             border: 1px solid rgba(46, 160, 67, 0.2);
         }
+        .estatus-vista {
+            background: rgba(197, 160, 89, 0.15);
+            color: var(--accent-gold);
+            border: 1px solid rgba(197, 160, 89, 0.4);
+        }
         .estatus-rumor {
             background: rgba(110, 118, 129, 0.2);
             color: #8b949e;
@@ -466,8 +471,7 @@
         .scroll-top-btn { opacity: 0; visibility: hidden; transition: opacity 0.3s; }
         .scroll-top-btn.show { opacity: 1; visibility: visible; }
         .floating-action-btn.narrator-active { border-color: var(--accent-gold); box-shadow: 0 0 10px var(--accent-gold); }
-
-              
+      
         /* MODALES GENERALES */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -493,8 +497,8 @@
             backdrop-filter: blur(4px);
         }
 
-        /* ESTILOS DEL ORGANIGRAMA PIRAMIDAL DE TEXTO */
-        .modal-large { max-width: 700px; text-align: left; max-height: 85vh; overflow-y: auto; }
+        /* ESTILOS DEL ORGANIGRAMA PIRAMIDAL DINÁMICO */
+        .modal-large { max-width: 750px; text-align: left; max-height: 85vh; overflow-y: auto; }
         .pyramid-text-chart {
             display: flex;
             flex-direction: column;
@@ -516,9 +520,9 @@
         .prince-node {
             background: rgba(197, 160, 89, 0.15);
             border: 2px solid var(--accent-gold);
-            max-width: 360px;
+            max-width: 380px;
         }
-        .branch-node { max-width: 220px; }
+        .branch-node { max-width: 260px; }
         .base-node {
             max-width: 420px;
             background: rgba(139, 0, 0, 0.1);
@@ -559,7 +563,7 @@
         }
         .p-line-split, .p-line-converge {
             display: flex;
-            gap: 120px;
+            gap: 140px;
         }
         .markdown-viewer { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
         .markdown-viewer h4 { color: var(--accent-gold); font-family: 'Cinzel', serif; margin: 12px 0 6px 0; }
@@ -649,50 +653,14 @@
     </div>
 </div>
 
-<!-- MODAL ESTRUCTURA DE PODER -->
+<!-- MODAL ESTRUCTURA DE PODER DINÁMICA -->
 <div id="powerModal" class="modal-overlay">
     <div class="modal-content modal-large">
         <h3>Estructura de Poder — La Camarilla de Chicago</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Jerarquía oficial y líneas de autoridad en la Jyhad local.</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Jerarquía oficial, rostros y líneas de autoridad en la Jyhad local.</p>
         
-        <div class="pyramid-text-chart">
-            <div class="pyramid-node prince-node">
-                <span class="p-title">Príncipe de Chicago</span>
-                <span class="p-desc">Autoridad Suprema de la Camarilla</span>
-            </div>
-
-            <div class="p-line-vertical">│</div>
-
-            <div class="pyramid-node">
-                <span class="p-title">Senescal</span>
-                <span class="p-desc">Mano derecha y administración de la ciudad</span>
-            </div>
-
-            <div class="p-line-split">
-                <span>↙</span><span>↘</span>
-            </div>
-
-            <div class="pyramid-row">
-                <div class="pyramid-node branch-node">
-                    <span class="p-label">[ Poder Político ]</span>
-                    <span class="p-title">Primogenitura</span>
-                    <span class="p-desc">Líderes de Clan (Ventrue, Toreador, etc.)</span>
-                </div>
-                <div class="pyramid-node branch-node">
-                    <span class="p-label">[ Poder Ejecutivo ]</span>
-                    <span class="p-title">Sheriff</span>
-                    <span class="p-desc">Brazo armado y ejecución de la Mascarada</span>
-                </div>
-            </div>
-
-            <div class="p-line-converge">
-                <span>↘</span><span>↙</span>
-            </div>
-
-            <div class="pyramid-node base-node">
-                <span class="p-title">Vástagos de la Ciudad</span>
-                <span class="p-desc">Ancillae, Neonatos y población sujeta al Censo</span>
-            </div>
+        <div id="pyramidChartContainer" class="pyramid-text-chart">
+            <!-- Se rellena dinámicamente con JS -->
         </div>
 
         <div class="modal-buttons" style="margin-top: 25px;">
@@ -711,12 +679,13 @@
             <h4>Niveles de Estatus y Visibilidad</h4>
             <ul>
                 <li><strong>Conocido:</strong> Ficha completa disponible, retrato real y ubicación visible (Etiqueta verde).</li>
-                <li><strong>Conocido de Oídas:</strong> Referencias generales, silueta misteriosa en lugar de foto y ubicación oculta, a menos que el PNJ posea un Cargo Oficial público (Etiqueta verde sutil).</li>
+                <li><strong>Conocido de Oídas:</strong> Referencias generales, silueta misteriosa en lugar de foto y ubicación oculta (Etiqueta verde sutil).</li>
+                <li><strong>Conocido de Vista:</strong> Se ha visto su rostro en persona, pero se desconoce su identidad y clan (Etiqueta dorada).</li>
                 <li><strong>Rumor:</strong> Nivel mínimo de corrillo callejero; solo se muestra el nombre en una tarjeta minimalista (Etiqueta gris).</li>
                 <li><strong>Oculto / Desconocido:</strong> Información clasificada o fuera de radar (La tarjeta no se muestra a los jugadores).</li>
             </ul>
             <h4>Modo Narrador</h4>
-            <p>Pulsa la llave flotante e introduce la clave del Narrator para desbloquear la visión absoluta de IDs, estatus y secretos ocultos.</p>
+            <p>Pulsa la llave flotante e introduce la clave para desbloquear la visión absoluta de IDs, estatus y secretos ocultos.</p>
         </div>
         <div class="modal-buttons">
             <button class="modal-btn modal-btn-cancel" onclick="cerrarModalReadme()">Cerrar</button>
@@ -792,7 +761,6 @@
 <script>
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQw2W5HuXW6Yklx0VDalmc6hXNsWy6I1ulz-HKxmmx4xKKoDEM9ISoojfuzgwNtGPYTp-auqBjLysPR/pub?output=csv';
     
-
     const CLAN_ICONS = {
         "banu haqim": "./iconos/clanes/Banu_Haqim_Symbol.png",
         "brujah": "./iconos/clanes/Brujah_symbol.png",
@@ -877,10 +845,119 @@
     }
     function cerrarModalNarrador() { document.getElementById('narratorModal').style.display = 'none'; }
 
-    function abrirModalPoder() { document.getElementById('powerModal').style.display = 'flex'; }
+    function abrirModalPoder() { 
+        poblarEstructuraPoder();
+        document.getElementById('powerModal').style.display = 'flex'; 
+    }
     function cerrarModalPoder() { document.getElementById('powerModal').style.display = 'none'; }
     function abrirModalReadme() { document.getElementById('readmeModal').style.display = 'flex'; }
     function cerrarModalReadme() { document.getElementById('readmeModal').style.display = 'none'; }
+
+    /* FUNCIÓN PARA GENERAR LA PIRÁMIDE DE PODER CON RETRATOS DINÁMICOS */
+    function poblarEstructuraPoder() {
+        const container = document.getElementById('pyramidChartContainer');
+        if (!container) return;
+
+        let principe = globalVampirosData.find(v => (v["Cargo_Oficial"] || "").toLowerCase().includes("príncipe") || (v["Cargo_Oficial"] || "").toLowerCase().includes("principe"));
+        let senescal = globalVampirosData.find(v => (v["Cargo_Oficial"] || "").toLowerCase().includes("senescal"));
+        let sheriff = globalVampirosData.find(v => (v["Cargo_Oficial"] || "").toLowerCase().includes("sheriff"));
+        let primogenitos = globalVampirosData.filter(v => {
+            const c = (v["Cargo_Oficial"] || "").toLowerCase();
+            return c.includes("primogénito") || c.includes("primogenito") || c.includes("primogenitura");
+        });
+
+        function getVampInfo(v) {
+            if (!v) return { nombre: "Vacante / Desconocido", imagen: "./retratos/silueta.jpg", cargo: "" };
+            const alias = (v["Alias"] || "").trim();
+            const nombreReal = (v["Nombre del Personaje"] || "").trim();
+            const nombre = alias !== "" ? alias : nombreReal;
+            const id = String(v["ID"] || "").trim();
+            const imagenPorId = id ? `${id}.jpg` : '';
+            const imagenPorNombre = nombreReal.replace(/["']/g, "").replace(/\s+/g, "_") + ".jpg";
+            const imagenLimpia = v["Archivo de Imagen"] || imagenPorId || imagenPorNombre;
+            const imagen = `./retratos/${imagenLimpia}`;
+            return { nombre, imagen, cargo: v["Cargo_Oficial"] || "" };
+        }
+
+        const pInfo = getVampInfo(principe);
+        const sInfo = getVampInfo(senescal);
+        const shInfo = getVampInfo(sheriff);
+
+        let html = `
+            <div class="pyramid-node prince-node" style="display: flex; align-items: center; gap: 15px; text-align: left; margin: 0 auto; width: 100%;">
+                <img src="${pInfo.imagen}" alt="${pInfo.nombre}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                <div style="overflow: hidden;">
+                    <span class="p-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${pInfo.nombre}</span>
+                    <span class="p-desc">Príncipe de Chicago</span>
+                </div>
+            </div>
+
+            <div class="p-line-vertical">│</div>
+
+            <div class="pyramid-node" style="display: flex; align-items: center; gap: 12px; text-align: left; margin: 0 auto; width: 100%;">
+                <img src="${sInfo.imagen}" alt="${sInfo.nombre}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent-gold); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                <div style="overflow: hidden;">
+                    <span class="p-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sInfo.nombre}</span>
+                    <span class="p-desc">Senescal</span>
+                </div>
+            </div>
+
+            <div class="p-line-split">
+                <span>↙</span><span>↘</span>
+            </div>
+
+            <div class="pyramid-row">
+                <div class="pyramid-node branch-node" style="text-align: center;">
+                    <span class="p-label">[ Poder Político ]</span>
+                    <span class="p-title" style="font-size: 0.85rem; margin-top: 4px;">Primogenitura</span>
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+        `;
+
+        if (primogenitos.length > 0) {
+            primogenitos.forEach(prim => {
+                const info = getVampInfo(prim);
+                html += `
+                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 4px; text-align: left;">
+                        <img src="${info.imagen}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                        <div style="overflow: hidden;">
+                            <div style="font-size: 0.75rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${info.nombre}</div>
+                            <div style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prim["Clan"] || prim["Cargo_Oficial"]}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            html += `<span class="p-desc">Sin registros</span>`;
+        }
+
+        html += `
+                    </div>
+                </div>
+                <div class="pyramid-node branch-node" style="text-align: center;">
+                    <span class="p-label">[ Poder Ejecutivo ]</span>
+                    <span class="p-title" style="font-size: 0.85rem; margin-top: 4px;">Sheriff</span>
+                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); padding: 6px 8px; border-radius: 4px; text-align: left; margin-top: 8px;">
+                        <img src="${shInfo.imagen}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                        <div style="overflow: hidden;">
+                            <div style="font-size: 0.8rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shInfo.nombre}</div>
+                            <div style="font-size: 0.68rem; color: var(--text-muted);">Brazo Armado</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-line-converge">
+                <span>↘</span><span>↙</span>
+            </div>
+
+            <div class="pyramid-node base-node">
+                <span class="p-title">Vástagos de la Ciudad</span>
+                <span class="p-desc">Ancillae, Neonatos y población sujeta al Censo</span>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
 
     /* FUNCIONES PARA EL POPUP DE LA IMAGEN */
     function abrirModalImg(urlImagen) {
@@ -1003,30 +1080,31 @@
 
             const tieneCargoReal = cargoOficial && cargoOficial.trim() !== "" && cargoOficial.trim() !== "-";
 
+            // Estricto con el Excel: si está oculto/desconocido y no es modo narrador, se omite de la lista principal
             if (!esNarrator) {
                 const estatusLower = estatus.toLowerCase();
                 const esOcultoODesconocido = estatusLower.includes("oculto") || estatusLower.includes("desconocido");
-                if (esOcultoODesconocido && !tieneCargoReal) {
+                if (esOcultoODesconocido) {
                     return; 
                 }
             }
 
-            // Lógica inteligente de Estatus adaptada
             let estatusEfectivo = estatus;
-            if (tieneCargoReal && (estatus.toLowerCase().includes("oculto") || estatus.toLowerCase().includes("desconocido"))) {
-                estatusEfectivo = "Cargo Público";
-            } else if (estatus.toLowerCase() === "interactuado" || estatus.toLowerCase() === "" || estatus.toLowerCase() === "conocido") {
+            if (estatus.toLowerCase() === "interactuado" || estatus.toLowerCase() === "" || estatus.toLowerCase() === "conocido") {
                 estatusEfectivo = "Conocido";
             }
 
             let estatusClase = "estatus-interactuado";
             const estatusLower = estatusEfectivo.toLowerCase();
             const esConocidoOidas = estatusLower.includes("oídas") || estatusLower.includes("oidas");
+            const esConocidoVista = estatusLower.includes("vista");
 
-            if (estatusLower.includes("cargo público") || estatusLower.includes("conocido")) {
+            if (estatusLower.includes("conocido")) {
                 estatusClase = "estatus-interactuado";
             } else if (esConocidoOidas) {
                 estatusClase = "estatus-oidas";
+            } else if (esConocidoVista) {
+                estatusClase = "estatus-vista";
             } else if (estatusLower.includes("rumor")) {
                 estatusClase = "estatus-rumor";
             }
@@ -1054,6 +1132,22 @@
                     <div class="card-body-content" style="padding-top: 40px; text-align: center;">
                         <div class="card-title" style="margin-bottom: 10px;">${nombrePrincipal}</div>
                         <p class="rumor-text" style="color: var(--text-muted); font-style: italic;">Se oye un rumor en las calles...</p>
+                    </div>
+                `;
+            } else if (!esNarrator && esConocidoVista) {
+                card.innerHTML = `
+                    <div class="id-badge">#${formattedId}</div>
+                    <div class="estatus-badge ${estatusClase}">${estatusEfectivo}</div>
+                    
+                    <div class="card-img-container">
+                        <img src="./retratos/${imagenLimpia}" alt="Desconocido" loading="lazy" onclick="abrirModalImg('./retratos/${imagenLimpia}')" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80';">
+                        <div class="${fuenteClase}">${textoFuente}</div>
+                    </div>
+                    
+                    <div class="card-body-content" style="text-align: center; justify-content: center; padding: 25px 18px;">
+                        <div class="card-title" style="margin-bottom: 5px; color: var(--text-muted);">Desconocido</div>
+                        <div class="card-clan-tag" style="margin-bottom: 10px;">Clan: Desconocido</div>
+                        <p style="font-size: 0.82rem; color: var(--text-muted); font-style: italic;">Lo has visto en persona, pero su identidad es un misterio.</p>
                     </div>
                 `;
             } else {
