@@ -497,8 +497,8 @@
             backdrop-filter: blur(4px);
         }
 
-        /* ESTILOS DEL ORGANIGRAMA PIRAMIDAL DINÁMICO */
-        .modal-large { max-width: 750px; text-align: left; max-height: 85vh; overflow-y: auto; }
+        /* ESTILOS DEL ORGANIGRAMA PIRAMIDAL DINÁMICO EN NIVELES */
+        .modal-large { max-width: 780px; text-align: left; max-height: 85vh; overflow-y: auto; }
         .pyramid-text-chart {
             display: flex;
             flex-direction: column;
@@ -522,18 +522,10 @@
             border: 2px solid var(--accent-gold);
             max-width: 380px;
         }
-        .branch-node { max-width: 260px; }
         .base-node {
             max-width: 420px;
             background: rgba(139, 0, 0, 0.1);
             border-color: rgba(139, 0, 0, 0.4);
-        }
-        .pyramid-row {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            width: 100%;
-            flex-wrap: wrap;
         }
         .p-title {
             display: block;
@@ -555,15 +547,11 @@
             margin-bottom: 2px;
             font-weight: bold;
         }
-        .p-line-vertical, .p-line-split, .p-line-converge {
+        .p-line-vertical {
             color: var(--accent-gold);
             font-weight: bold;
             font-size: 1rem;
             line-height: 1;
-        }
-        .p-line-split, .p-line-converge {
-            display: flex;
-            gap: 140px;
         }
         .markdown-viewer { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
         .markdown-viewer h4 { color: var(--accent-gold); font-family: 'Cinzel', serif; margin: 12px 0 6px 0; }
@@ -660,7 +648,7 @@
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Jerarquía oficial, rostros y líneas de autoridad en la Jyhad local.</p>
         
         <div id="pyramidChartContainer" class="pyramid-text-chart">
-            <!-- Se rellena dinámicamente con JS -->
+            <!-- Se rellena dinámicamente con JS en niveles independientes -->
         </div>
 
         <div class="modal-buttons" style="margin-top: 25px;">
@@ -853,7 +841,7 @@
     function abrirModalReadme() { document.getElementById('readmeModal').style.display = 'flex'; }
     function cerrarModalReadme() { document.getElementById('readmeModal').style.display = 'none'; }
 
-    /* FUNCIÓN PARA GENERAR LA PIRÁMIDE DE PODER CON RETRATOS DINÁMICOS */
+    /* FUNCIÓN PARA GENERAR LA PIRÁMIDE DE PODER EN NIVELES SEPARADOS */
     function poblarEstructuraPoder() {
         const container = document.getElementById('pyramidChartContainer');
         if (!container) return;
@@ -884,6 +872,7 @@
         const shInfo = getVampInfo(sheriff);
 
         let html = `
+            <!-- Nivel 1: Príncipe -->
             <div class="pyramid-node prince-node" style="display: flex; align-items: center; gap: 15px; text-align: left; margin: 0 auto; width: 100%;">
                 <img src="${pInfo.imagen}" alt="${pInfo.nombre}" style="width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-gold); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
                 <div style="overflow: hidden;">
@@ -894,6 +883,7 @@
 
             <div class="p-line-vertical">│</div>
 
+            <!-- Nivel 2: Senescal -->
             <div class="pyramid-node" style="display: flex; align-items: center; gap: 12px; text-align: left; margin: 0 auto; width: 100%;">
                 <img src="${sInfo.imagen}" alt="${sInfo.nombre}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent-gold); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
                 <div style="overflow: hidden;">
@@ -902,54 +892,54 @@
                 </div>
             </div>
 
-            <div class="p-line-split">
-                <span>↙</span><span>↘</span>
-            </div>
+            <div class="p-line-vertical">│</div>
 
-            <div class="pyramid-row">
-                <div class="pyramid-node branch-node" style="text-align: center;">
-                    <span class="p-label">[ Poder Político ]</span>
-                    <span class="p-title" style="font-size: 0.85rem; margin-top: 4px;">Primogenitura</span>
-                    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+            <!-- Nivel 3: Primogenitura (Estrategia de Parrilla Completa) -->
+            <div class="pyramid-node" style="max-width: 650px; width: 100%; text-align: center; padding: 15px;">
+                <span class="p-label">[ Poder Político ]</span>
+                <span class="p-title" style="margin-bottom: 12px;">Primogenitura</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
         `;
 
         if (primogenitos.length > 0) {
             primogenitos.forEach(prim => {
                 const info = getVampInfo(prim);
                 html += `
-                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 4px; text-align: left;">
-                        <img src="${info.imagen}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--card-border); text-align: left; width: calc(50% - 6px); min-width: 210px;">
+                        <img src="${info.imagen}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--accent-gold);" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
                         <div style="overflow: hidden;">
-                            <div style="font-size: 0.75rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${info.nombre}</div>
-                            <div style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prim["Clan"] || prim["Cargo_Oficial"]}</div>
+                            <div style="font-size: 0.78rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${info.nombre}</div>
+                            <div style="font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prim["Clan"] || "Primogénito"}</div>
                         </div>
                     </div>
                 `;
             });
         } else {
-            html += `<span class="p-desc">Sin registros</span>`;
+            html += `<span class="p-desc">Sin registros en la Primogenitura</span>`;
         }
 
         html += `
-                    </div>
                 </div>
-                <div class="pyramid-node branch-node" style="text-align: center;">
-                    <span class="p-label">[ Poder Ejecutivo ]</span>
-                    <span class="p-title" style="font-size: 0.85rem; margin-top: 4px;">Sheriff</span>
-                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); padding: 6px 8px; border-radius: 4px; text-align: left; margin-top: 8px;">
-                        <img src="${shInfo.imagen}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
-                        <div style="overflow: hidden;">
-                            <div style="font-size: 0.8rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shInfo.nombre}</div>
-                            <div style="font-size: 0.68rem; color: var(--text-muted);">Brazo Armado</div>
-                        </div>
+            </div>
+
+            <div class="p-line-vertical">│</div>
+
+            <!-- Nivel 4: Sheriff (Poder Ejecutivo en su propio estrado) -->
+            <div class="pyramid-node" style="max-width: 340px; width: 100%; text-align: center;">
+                <span class="p-label">[ Poder Ejecutivo ]</span>
+                <span class="p-title" style="margin-bottom: 6px;">Sheriff</span>
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--card-border); text-align: left;">
+                    <img src="${shInfo.imagen}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--accent-red);" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                    <div style="overflow: hidden;">
+                        <div style="font-size: 0.82rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shInfo.nombre}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Brazo Armado</div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-line-converge">
-                <span>↘</span><span>↙</span>
-            </div>
+            <div class="p-line-vertical">│</div>
 
+            <!-- Nivel Base: Vástagos de la Ciudad -->
             <div class="pyramid-node base-node">
                 <span class="p-title">Vástagos de la Ciudad</span>
                 <span class="p-desc">Ancillae, Neonatos y población sujeta al Censo</span>
