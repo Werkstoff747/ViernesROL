@@ -497,8 +497,8 @@
             backdrop-filter: blur(4px);
         }
 
-        /* ESTILOS DEL ORGANIGRAMA PIRAMIDAL DINÁMICO EN NIVELES */
-        .modal-large { max-width: 780px; text-align: left; max-height: 85vh; overflow-y: auto; }
+        /* ESTILOS DEL ORGANIGRAMA PIRAMIDAL AMPLIADO */
+        .modal-large { max-width: 950px; text-align: left; max-height: 88vh; overflow-y: auto; }
         .pyramid-text-chart {
             display: flex;
             flex-direction: column;
@@ -514,13 +514,13 @@
             padding: 10px 15px;
             text-align: center;
             width: 100%;
-            max-width: 320px;
+            max-width: 340px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         .prince-node {
             background: rgba(197, 160, 89, 0.15);
             border: 2px solid var(--accent-gold);
-            max-width: 380px;
+            max-width: 400px;
         }
         .base-node {
             max-width: 420px;
@@ -648,7 +648,7 @@
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Jerarquía oficial, rostros y líneas de autoridad en la Jyhad local.</p>
         
         <div id="pyramidChartContainer" class="pyramid-text-chart">
-            <!-- Se rellena dinámicamente con JS en niveles independientes -->
+            <!-- Se rellena dinámicamente con JS -->
         </div>
 
         <div class="modal-buttons" style="margin-top: 25px;">
@@ -841,7 +841,7 @@
     function abrirModalReadme() { document.getElementById('readmeModal').style.display = 'flex'; }
     function cerrarModalReadme() { document.getElementById('readmeModal').style.display = 'none'; }
 
-    /* FUNCIÓN PARA GENERAR LA PIRÁMIDE DE PODER EN NIVELES SEPARADOS */
+    /* FUNCIÓN PARA GENERAR LA PIRÁMIDE DE PODER CON GRILLA FLEXIBLE PARA TODOS LOS PRIMOGÉNITOS */
     function poblarEstructuraPoder() {
         const container = document.getElementById('pyramidChartContainer');
         if (!container) return;
@@ -849,9 +849,11 @@
         let principe = globalVampirosData.find(v => (v["Cargo_Oficial"] || "").toLowerCase().includes("príncipe") || (v["Cargo_Oficial"] || "").toLowerCase().includes("principe"));
         let senescal = globalVampirosData.find(v => (v["Cargo_Oficial"] || "").toLowerCase().includes("senescal"));
         let sheriff = globalVampirosData.find(v => (v["Cargo_Oficial"] || "").toLowerCase().includes("sheriff"));
+        
+        // Filtro robusto para capturar todos los primogénitos (hasta los 7)
         let primogenitos = globalVampirosData.filter(v => {
             const c = (v["Cargo_Oficial"] || "").toLowerCase();
-            return c.includes("primogénito") || c.includes("primogenito") || c.includes("primogenitura");
+            return c.includes("primog");
         });
 
         function getVampInfo(v) {
@@ -894,22 +896,22 @@
 
             <div class="p-line-vertical">│</div>
 
-            <!-- Nivel 3: Primogenitura (Estrategia de Parrilla Completa) -->
-            <div class="pyramid-node" style="max-width: 650px; width: 100%; text-align: center; padding: 15px;">
+            <!-- Nivel 3: Primogenitura (Cuadrícula amplia adaptable) -->
+            <div class="pyramid-node" style="max-width: 850px; width: 100%; text-align: center; padding: 18px;">
                 <span class="p-label">[ Poder Político ]</span>
-                <span class="p-title" style="margin-bottom: 12px;">Primogenitura</span>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                <span class="p-title" style="margin-bottom: 12px; font-size: 1.05rem;">Primogenitura</span>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; justify-content: center;">
         `;
 
         if (primogenitos.length > 0) {
             primogenitos.forEach(prim => {
                 const info = getVampInfo(prim);
                 html += `
-                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--card-border); text-align: left; width: calc(50% - 6px); min-width: 210px;">
-                        <img src="${info.imagen}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--accent-gold);" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--card-border); text-align: left;">
+                        <img src="${info.imagen}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--accent-gold);" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
                         <div style="overflow: hidden;">
-                            <div style="font-size: 0.78rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${info.nombre}</div>
-                            <div style="font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prim["Clan"] || "Primogénito"}</div>
+                            <div style="font-size: 0.8rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${info.nombre}</div>
+                            <div style="font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${prim["Clan"] || prim["Cargo_Oficial"]}</div>
                         </div>
                     </div>
                 `;
@@ -924,15 +926,15 @@
 
             <div class="p-line-vertical">│</div>
 
-            <!-- Nivel 4: Sheriff (Poder Ejecutivo en su propio estrado) -->
-            <div class="pyramid-node" style="max-width: 340px; width: 100%; text-align: center;">
+            <!-- Nivel 4: Sheriff -->
+            <div class="pyramid-node" style="max-width: 360px; width: 100%; text-align: center;">
                 <span class="p-label">[ Poder Ejecutivo ]</span>
                 <span class="p-title" style="margin-bottom: 6px;">Sheriff</span>
-                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--card-border); text-align: left;">
-                    <img src="${shInfo.imagen}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--accent-red);" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border); text-align: left;">
+                    <img src="${shInfo.imagen}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--accent-red);" onerror="this.src='https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=500&q=80'">
                     <div style="overflow: hidden;">
-                        <div style="font-size: 0.82rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shInfo.nombre}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Brazo Armado</div>
+                        <div style="font-size: 0.85rem; font-weight: bold; color: var(--accent-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${shInfo.nombre}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Brazo Armado</div>
                     </div>
                 </div>
             </div>
@@ -1021,7 +1023,7 @@
                 if (cargo.includes("príncipe") || cargo.includes("principe")) return 1;
                 if (cargo.includes("senescal")) return 2;
                 if (cargo.includes("sheriff")) return 3;
-                if (cargo.includes("primogénito") || cargo.includes("primogenito") || cargo.includes("primogenitura")) return 4;
+                if (cargo.includes("primog")) return 4;
                 return 5;
             }
 
