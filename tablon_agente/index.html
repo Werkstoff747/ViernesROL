@@ -38,7 +38,18 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); overflow: hidden; transition: background-color 0.3s; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            background-image: linear-gradient(rgba(18, 24, 36, 0.88), rgba(18, 24, 36, 0.94)), url('imagenes/fondo_delta.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main); 
+            overflow: hidden; 
+            transition: background-color 0.3s; 
+        }
 
         /* VISTA 1: ADMIN DASHBOARD */
         #admin-view {
@@ -110,9 +121,17 @@
         /* VISTA 2: TABLÓN INMERSIVO */
         #board-view {
             display: none; position: fixed; inset: 0; width: 100vw; height: 100vh;
-            background-color: #b8865c; overflow: hidden; cursor: grab;
+            /* Se ha integrado la imagen y el degradado también para el fondo del tablero inmersivo */
+            background-image: linear-gradient(rgba(18, 24, 36, 0.88), rgba(18, 24, 36, 0.94)), url('iconos/chicago_fondo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden; cursor: grab;
         }
-        #board-view.whiteboard { background-color: #f4f6f8; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 35px 35px; }
+        #board-view.whiteboard { 
+            background-image: linear-gradient(rgba(18, 24, 36, 0.88), rgba(18, 24, 36, 0.94)), url('iconos/chicago_fondo.jpg'), linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); 
+            background-size: cover, cover, 35px 35px, 35px 35px; 
+        }
         #board-view.drawing-mode { cursor: crosshair; }
         #board-view.eraser-mode { cursor: cell; }
         #board-view:active { cursor: grabbing; }
